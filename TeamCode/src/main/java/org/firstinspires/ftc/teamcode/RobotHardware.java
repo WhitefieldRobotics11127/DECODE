@@ -36,6 +36,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -57,7 +58,7 @@ public class RobotHardware {
     /**
      * Normal speed for movement commands.
      */
-    public static final double MOTOR_SPEED_FACTOR_NORMAL = 0.65;
+    public static final double MOTOR_SPEED_FACTOR_NORMAL = 0.45;
     /**
      * "Sprint" speed for movement commands.
      */
@@ -65,7 +66,7 @@ public class RobotHardware {
     /**
      * Slower speed for movement commands to allow for precise odometry tracking.
      */
-    public static final double MOTOR_SPEED_FACTOR_PRECISE = 0.35;
+    public static final double MOTOR_SPEED_FACTOR_PRECISE = 0.15;
     /**
      * Separate speed for Autonomous movement commands to use.
      */
@@ -325,7 +326,7 @@ public class RobotHardware {
         rightBackDrive = myOpMode.hardwareMap.get(DcMotorEx.class, "rightback_drive");
 
         // Set the direction, braking, and run mode for each motor 
-        leftFrontDrive.setDirection(DcMotorEx.Direction.REVERSE); // based on which way the motor is mounted
+        leftFrontDrive.setDirection(DcMotorEx.Direction.FORWARD); // based on which way the motor is mounted
         leftFrontDrive.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE); // don't allow overrun
         leftFrontDrive.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER); // increased accuracy and balance from controls
 
@@ -333,7 +334,7 @@ public class RobotHardware {
         leftBackDrive.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         leftBackDrive.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-        rightFrontDrive.setDirection(DcMotorEx.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotorEx.Direction.REVERSE);
         rightFrontDrive.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         rightFrontDrive.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
@@ -792,25 +793,36 @@ public class RobotHardware {
 
     /* ------ Shooter Methods ----- */
     public void shoot() {
+        launcherMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         //Spin the wheel
-        launcherMotor.setPower(0.5);
+        launcherMotor.setPower(0.8);
         //Wait for 1/2 a second
         sleep(700);
         //Stop spinning the wheel
         launcherMotor.setPower(0);
     }
     public void shootOn() {
-        launcherMotor.setPower(0.5);
+        launcherMotor.setPower(0.8);
     }
     public void shootOff() {
         launcherMotor.setPower(0);
     }
     /*------ Kebob Methods ------ */
     public void kebobOn() {
+        kebobMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         kebobMotor.setPower(0.5);
     }
     public void kebobOff() {
         kebobMotor.setPower(0);
+    }
+    public void reverse() {
+        launcherMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        //Spin the wheel
+        launcherMotor.setPower(0.5);
+        //Wait for 1/2 a second
+        sleep(700);
+        //Stop spinning the wheel
+        launcherMotor.setPower(0);
     }
     /**
      * Retrieves the current distance reading from the front distance sensor.

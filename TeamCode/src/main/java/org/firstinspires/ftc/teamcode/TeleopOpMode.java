@@ -98,8 +98,8 @@ public class TeleopOpMode extends OpMode
         // Setup the initial telemetry display for the driving team captain
         telemetry.addData("Status", "Running (%s)", runtime.toString());
         telemetry.addData("Speed Factor", speedFactorNames.get(speedFactor));
-        telemetry.addData("Arm Rotation Position", robot.getArmRotation());
-        telemetry.addData("Arm Extension Position", robot.getArmExtension());
+
+
     }
 
     /*
@@ -113,19 +113,16 @@ public class TeleopOpMode extends OpMode
         // Set the current speedFactor from button presses on the first gamepad:
         // A: Normal speed
         // B: Precise speed
-        // X: Davis speed
+        // X: Fry speed
         // Y: D-Pad speed setter
 
-        if(gamepad1.a && !lastGamepad1.a) {
+        if (gamepad1.a && !lastGamepad1.a) {
             speedFactor = RobotHardware.MOTOR_SPEED_FACTOR_NORMAL;
-        }
-        else if (gamepad1.x && !lastGamepad1.x) {
+        } else if (gamepad1.x && !lastGamepad1.x) {
             speedFactor = RobotHardware.MOTOR_SPEED_FACTOR_DAVIS; // fly high fry guy
-        }
-        else if(gamepad1.b && !lastGamepad1.b) {
+        } else if (gamepad1.b && !lastGamepad1.b) {
             speedFactor = RobotHardware.MOTOR_SPEED_FACTOR_PRECISE;
-        }
-        else if(gamepad1.y) {
+        } else if (gamepad1.y) {
             evanButton = speedFactor;
         }
         //else {
@@ -133,30 +130,29 @@ public class TeleopOpMode extends OpMode
         //}
 
         // If d-pad input provided, ignore joystick input(s)
-        if(gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_left || gamepad1.dpad_right) {
+        if (gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_left || gamepad1.dpad_right) {
 
             // Move the robot in the direction of the d-pad button pressed at 1/2 precision speed
-            if(gamepad1.dpad_up && !lastGamepad1.dpad_up) {
+            if (gamepad1.dpad_up && !lastGamepad1.dpad_up) {
                 robot.move(1, 0, 0, evanButton * 0.5);
-            } else if(gamepad1.dpad_down && !lastGamepad1.dpad_down) {
+            } else if (gamepad1.dpad_down && !lastGamepad1.dpad_down) {
                 robot.move(-1, 0, 0, evanButton * 0.5);
-            } else if(gamepad1.dpad_left && !lastGamepad1.dpad_left) {
+            } else if (gamepad1.dpad_left && !lastGamepad1.dpad_left) {
                 robot.move(0, 1, 0, evanButton * 0.5);
-            } else if(gamepad1.dpad_right && !lastGamepad1.dpad_right) {
+            } else if (gamepad1.dpad_right && !lastGamepad1.dpad_right) {
                 robot.move(0, -1, 0, evanButton * 0.5);
             }
 
 
         } else {
             // ignore right stick inputs if bumpers are pressed
-            if (gamepad1.right_bumper || gamepad1.left_bumper){
+            if (gamepad1.right_bumper || gamepad1.left_bumper) {
                 //rotates the bot based off of set speed.
-               if (gamepad1.right_bumper)
-                   robot.move(0,0, -1, evanButton * 0.5);
-               else if(gamepad1.left_bumper)
-                   robot.move(0, 0, 1, evanButton * 0.5);
-            }
-            else {
+                if (gamepad1.right_bumper)
+                    robot.move(0, 0, -1, evanButton * 0.5);
+                else if (gamepad1.left_bumper)
+                    robot.move(0, 0, 1, evanButton * 0.5);
+            } else {
                 // Use left joystick to go forward & strafe, and right joystick to rotate.
                 // NOTE: the robot.move() function takes values in FTC coordinate system values, where
                 // +x is forward, +y is left, and +yaw is counter-clockwise rotation.
@@ -180,90 +176,12 @@ public class TeleopOpMode extends OpMode
             robot.kebobOff();
         if (gamepad2.right_trigger >= 0.5)
             robot.shoot();
-        if (gamepad2.left_trigger >= 0.5)
-
-
-
-        // If the arm extension motor is busy extending arm to a position, check progress
-        // and reset flag if finished
-        if (inArmExtensionOperation) {
-            if (!robot.isArmExtensionBusy()) {
-                robot.stopArmExtension();
-                inArmExtensionOperation = false;
-            }
+        if (gamepad2.left_trigger >= 0.5) {
+            robot.reverse();
         }
-        else {
-
-            // If the arm becomes outside of limits, e.g., as indicated by loud clicking sound of
-            // the belt drive, use the B button to suspend the limits and then fully retract (home)
-            // the arm. Then use the A button to reset the limit values (ARM_EXTENSION_MAX and
-            // ARM_EXTENSION_MIN) from the fully retracted (0) position.
-            if (gamepad2.a && !lastGamepad2.a) {
-                robot.resetArmLimits();
-            }
-            else if (gamepad2.b && !lastGamepad2.b) {
-                robot.suspendArmLimits();
-            }
-
-            // If a particular position for the arm extension is desired, use the RUN_TO_POSITION
-            // capability of the motor/encoder to extend/retract the arm to the desired position
-            // in the background.
-            if (gamepad2.left_bumper && !lastGamepad2.left_bumper ||
-                    gamepad2.right_bumper && !lastGamepad2.right_bumper ||
-                    gamepad2.dpad_up && !lastGamepad2.dpad_up ||
-                    gamepad2.dpad_down && !lastGamepad2.dpad_down) {
-
-                // if right bumper is pressed, fully extend the arm. This is a separate operation
-                // because the limits change based on whether the current rotational position of
-                // the arm is considered vertical.
-                if (gamepad2.right_bumper)
-                    robot.extendArmToLimit();
-
-                // if left bumper is pressed, fully retract the arm
-                else if (gamepad2.left_bumper)
-                    robot.extendArmToPosition(0);
-
-                // otherwise, move the arm extension by +/- 600 ticks
-                else {
-                    int pos = robot.getArmExtension();
-                    if (gamepad2.dpad_up)
-                        pos += 600;
-                    else if (gamepad2.dpad_down)
-                        pos -= 600;
-
-                    // Set the arm extension to the specified position
-                    robot.extendArmToPosition(pos);
-                }
-
-                // set flag to indicate that the arm extension motor is in a RUN_TO_POSITION operation
-                inArmExtensionOperation = true;
-            }
-
-            // otherwise, get the arm movement from the left stick
-            else {
-
-                // Left stick Y controls the arm extension.
-                robot.extendArm(-gamepad2.left_stick_y);
-            }
-        }
-
-        // Right stick Y controls the arm rotation using a aircraft yoke pitch paradigm: pull back
-        // to raise the arm and push forward to lower the arm.
-        // NOTE: The rotateArm() method takes positive values to lower the arm and negative values
-        // to raise the arm. This is so that the power applied for the rotation tracks with the
-        // values returned from the rotation position sensor (potentiometer).
-        robot.rotateArm(-gamepad2.right_stick_y);
-
-        // Save the current gamepad states
-        lastGamepad1.copy(gamepad1);
-        lastGamepad2.copy(gamepad2);
-
-        // Update the telemetry information
-        telemetry.addData("Status", "Running (%s)", runtime.toString());
-        telemetry.addData("Speed Factor", speedFactorNames.get(speedFactor));
-        telemetry.addData("Arm Rotation Position", robot.getArmRotation());
-        telemetry.addData("Arm Extension Position", robot.getArmExtension());
     }
+
+
 
     /*
      * Code to run ONCE after the driver hits STOP

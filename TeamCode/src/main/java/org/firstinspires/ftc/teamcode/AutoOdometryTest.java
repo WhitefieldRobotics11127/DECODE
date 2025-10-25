@@ -115,8 +115,8 @@ public class AutoOdometryTest extends LinearOpMode {
             // NOTE: Use the Drivetrain test/calibration opmode to move the robot into this position
             // and then pull the right trigger to read the x, y, and heading position along with the
             // tag ID to supply to the moveToPositionUsingAprilTag() function.
-            else if (gamepad1.a)
-                robot.moveToPositionUsingAprilTag(-1301.6, -1083.0, 1.607, 1, 16, RobotHardware.MOTOR_SPEED_FACTOR_PRECISE);
+
+
 
             // Display odometry telemetry
             showTelemetry();

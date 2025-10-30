@@ -58,7 +58,7 @@ public class RobotHardware {
     /**
      * Normal speed for movement commands.
      */
-    public static final double MOTOR_SPEED_FACTOR_NORMAL = 0.45;
+    public static final double MOTOR_SPEED_FACTOR_NORMAL = 0.6;
     /**
      * "Sprint" speed for movement commands.
      */
@@ -66,7 +66,7 @@ public class RobotHardware {
     /**
      * Slower speed for movement commands to allow for precise odometry tracking.
      */
-    public static final double MOTOR_SPEED_FACTOR_PRECISE = 0.15;
+    public static final double MOTOR_SPEED_FACTOR_PRECISE = 0.35;
     /**
      * Separate speed for Autonomous movement commands to use.
      */
@@ -390,13 +390,16 @@ public class RobotHardware {
         launcherMotor.setDirection(DcMotorEx.Direction.REVERSE);
         launcherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
+        kebobMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        kebobMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        kebobMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         // Reset the encoder count to zero and make sure the motor is stopped
         // NOTE: the viper slide should be fully retracted before "Start" is pressed
         //launcherMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         //launcherMotor.setPower(0.0);
 
-        // Set the run mode to RUN_USING_ENCODER
-        launcherMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        // Set the run mode to RUN_WITHOUT_ENCODER
+        launcherMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         // Initialize settings for arm motor
         // NOTE: Run the motor in forward direction so that power to the motor is positive when
         // tilting down. This allows the direction of rotation to track with the direction of the
@@ -802,20 +805,20 @@ public class RobotHardware {
         launcherMotor.setPower(0);
     }
     public void shootOn() {
-        launcherMotor.setPower(0.8);
+        launcherMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        launcherMotor.setPower(0.75);
     }
     public void shootOff() {
         launcherMotor.setPower(0);
     }
     /*------ Kebob Methods ------ */
-    public void kebobOn() {
-        kebobMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        kebobMotor.setPower(0.5);
-    }
+
     public void kebobOff() {
         kebobMotor.setPower(0);
     }
-    public void reverse() {
+
+
+    public void reverseLauncher() {
         launcherMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         //Spin the wheel
         launcherMotor.setPower(0.5);
@@ -824,6 +827,15 @@ public class RobotHardware {
         //Stop spinning the wheel
         launcherMotor.setPower(0);
     }
+    public void reverseKebob(double power) {
+        kebobMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        kebobMotor.setPower(power);
+    }
+    public void forwardKebob(double power) {
+        kebobMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        kebobMotor.setPower(power);
+    }
+
     /**
      * Retrieves the current distance reading from the front distance sensor.
      * @return distance reading in MM

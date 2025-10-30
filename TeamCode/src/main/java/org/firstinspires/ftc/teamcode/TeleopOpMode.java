@@ -166,19 +166,35 @@ public class TeleopOpMode extends OpMode
         // ***** Kebob / Launcher from Gamepad2 *****
 
         //Controls for Player 2 - Shoot Person
+        if (gamepad2.dpad_up && !lastGamepad2.dpad_up)
+        {
+            robot.forwardKebob(0.25);
+        }
+        if (gamepad2.dpad_down && !lastGamepad2.dpad_down)
+        {
+            robot.reverseKebob(0.25);
+        }
+
         if (gamepad2.a)
             robot.shootOn();
         if (gamepad2.b)
             robot.shootOff();
-        if (gamepad2.x)
-            robot.kebobOn();
-        if (gamepad2.y)
+
+        if (gamepad2.xWasPressed())
+            robot.reverseKebob(.5);
+        if (gamepad2.xWasReleased())
             robot.kebobOff();
-        if (gamepad2.right_trigger >= 0.5)
-            robot.shoot();
-        if (gamepad2.left_trigger >= 0.5) {
-            robot.reverse();
-        }
+        if (gamepad2.yWasPressed())
+            robot.forwardKebob(.5);
+        if (gamepad2.yWasReleased())
+            robot.kebobOff();
+        if (gamepad2.left_trigger >= 0.5)
+            robot.reverseLauncher();
+        if (gamepad2.left_bumper)
+            robot.reverseKebob(.5);
+        if (gamepad2.right_bumper)
+            robot.forwardKebob(.5);
+
     }
 
 

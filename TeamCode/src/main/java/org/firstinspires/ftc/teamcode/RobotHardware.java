@@ -31,6 +31,8 @@ package org.firstinspires.ftc.teamcode;
 import static android.os.SystemClock.sleep;
 import static com.qualcomm.robotcore.util.Range.clip;
 
+import android.util.Size;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -40,14 +42,20 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import java.util.ArrayList;
+
 /**
  * Hardware abstraction class for WA Robotics DECODE competition robot
  */
@@ -798,15 +806,22 @@ public class RobotHardware {
     public void shoot() {
         launcherMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         //Spin the wheel
-        launcherMotor.setPower(0.8);
+        launcherMotor.setPower(0.85);
         //Wait for 1/2 a second
         sleep(700);
         //Stop spinning the wheel
         launcherMotor.setPower(0);
     }
-    public void shootOn() {
+    public void shootOn(boolean far) {
         launcherMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        launcherMotor.setPower(0.75);
+        if (far)
+        {
+            launcherMotor.setPower(0.85);
+        }
+        else
+        {
+            launcherMotor.setPower(0.75);
+        }
     }
     public void shootOff() {
         launcherMotor.setPower(0);
@@ -836,33 +851,18 @@ public class RobotHardware {
         kebobMotor.setPower(power);
     }
 
-    /**
-     * Retrieves the current distance reading from the front distance sensor.
-     * @return distance reading in MM
-     */
-    //public double getFrontDistance() {
-    //    return frontDistanceSensor.getDistance(DistanceUnit.MM);
-    //}
-
-    /**
-     * Retrieves the current distance reading from the rear distance sensor.
-     *
-     * @return distance reading in MM
-     */
-    //public double getRearDistance() {
-    //return rearDistanceSensor.getDistance(DistanceUnit.MM);
-    //}
 
     /* ----- Vision processing methods ----- */
-/*
+
     // Initialize VisionPortal and AprilTagProcessor objects
-    //private void initVision() {
+    public void initVision()
+    {
 
         // Create and build an AprilTag processor for each camera.
         aprilTagCam1 = new AprilTagProcessor.Builder()
 
             // un-comment and edit the following default settings as needed
-            //.setDrawAxes(false)
+                .setDrawAxes(true)
             //.setDrawCubeProjection(false)
             .setDrawTagOutline(false)
             //.setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
@@ -903,16 +903,15 @@ public class RobotHardware {
 
         // setup webcam references for each camera
         webcam1 = myOpMode.hardwareMap.get(WebcamName.class, "Webcam 1");
-        webcam2 = myOpMode.hardwareMap.get(WebcamName.class, "Webcam 2");
         CameraName switchableCamera = ClassFactory.getInstance()
-            .getCameraManager().nameForSwitchableCamera(webcam1, webcam2);
+            .getCameraManager().nameForSwitchableCamera(webcam1);
 
         // Create the vision portal by using a builder and setup for multiple webcams
         visionPortal = new VisionPortal.Builder()
             .setCamera(switchableCamera)
 
             // un-comment and edit the following default settings as needed
-            .enableLiveView(false) // Enable the RC preview (LiveView) - set "false" to omit camera monitoring
+            .enableLiveView(true) // Enable the RC preview (LiveView) - set "false" to omit camera monitoring
             .setStreamFormat(VisionPortal.StreamFormat.MJPEG) // Set the stream format; MJPEG uses less bandwidth than default YUY2.
             //.setAutoStopLiveView(false) //Choose whether or not LiveView stops if no processors are enabled.
             .setCameraResolution(new Size(1920, 1080)) // camera resolution (for all cameras ???)
@@ -930,7 +929,7 @@ public class RobotHardware {
      * detector as well.
      * @param camera the number of the camera to use - 0 deactivates all cameras
      */
-   /* public void switchCamera(int camera) {
+    public void switchCamera(int camera) {
 
         // no need for anything fancy, just select the right camera and activate
         // the corresponding AprilTag processor (and deactivate all others)
@@ -955,7 +954,7 @@ public class RobotHardware {
     /**
      * Get AprilTag detections from the currently active camera.
      */
-    /*public ArrayList<AprilTagDetection> getAprilTags() {
+    public ArrayList<AprilTagDetection> getAprilTags() {
         if (visionPortal.getProcessorEnabled(aprilTagCam1))
             return aprilTagCam1.getDetections();
         else if (visionPortal.getProcessorEnabled(aprilTagCam2))
@@ -967,7 +966,7 @@ public class RobotHardware {
     /**
      * Enable video streaming for AprilTag detection
      */
-    /*public void enableVision() {
+    public void enableVision() {
         visionPortal.resumeStreaming();
     }
 
@@ -976,7 +975,7 @@ public class RobotHardware {
      * Teleop OpModes may want to call this method to save hardware resources in teleop if
      * no AprilTag processing is needed.
      */
-    /*public void disableVision() {
+    public void disableVision() {
         visionPortal.stopStreaming();
     }
 
@@ -987,12 +986,12 @@ public class RobotHardware {
      * be.
      * This method should only be called from a LinerOpMode and may delay for some period before
      * returning the Pose3D object. If specified tag cannot be detected, returns null.
-     * @param camera camera to use for AprilTag detection (int 1, 2, etc.)
-     * @param tagID tag ID to use to get position (int from competition library)
-     * @return Pose3D object with the position and orientation of the robot relative to the tag
-     * @see org.firstinspires.ftc.vision.apriltag.AprilTagPoseFtc
+     * //@param camera camera to use for AprilTag detection (int 1, 2, etc.)
+     * //@param tagID tag ID to use to get position (int from competition library)
+     * //@return Pose3D object with the position and orientation of the robot relative to the tag
+     * //@see org.firstinspires.ftc.vision.apriltag.AprilTagPoseFtc
      */
-    /*public AprilTagPoseFtc getAprilTagPose(int camera, int tagID) {
+    /* public AprilTagPoseFtc getAprilTagPose(int camera, int tagID) {
 
         // Maximum number of times the specified tag was not detected before breaking out of the loop
         final int MAX_NO_DETECTION_COUNT = 5;

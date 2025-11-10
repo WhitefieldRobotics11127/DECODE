@@ -61,7 +61,7 @@ public class TeleopOpMode extends OpMode
     // Flag to indicate that the arm extension motor is in a RUN_TO_POSITION operation. This allows
     // a single button press to extend/retract the arm to a specific position without tying up the
     // thread in the loop() function waiting for the arm to reach the desired position.
-    boolean inArmExtensionOperation = false;
+    boolean isFar = false;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -174,9 +174,13 @@ public class TeleopOpMode extends OpMode
         {
             robot.reverseKebob(0.25);
         }
+        if (gamepad2.right_bumper)
+            isFar = true;
+        if (gamepad2.left_bumper)
+            isFar = false;
 
         if (gamepad2.a)
-            robot.shootOn();
+            robot.shootOn(isFar);
         if (gamepad2.b)
             robot.shootOff();
 
@@ -190,10 +194,6 @@ public class TeleopOpMode extends OpMode
             robot.kebobOff();
         if (gamepad2.left_trigger >= 0.5)
             robot.reverseLauncher();
-        if (gamepad2.left_bumper)
-            robot.reverseKebob(.5);
-        if (gamepad2.right_bumper)
-            robot.forwardKebob(.5);
 
     }
 

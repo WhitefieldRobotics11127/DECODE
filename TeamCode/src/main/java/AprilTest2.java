@@ -33,6 +33,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+
 /*
  * This file contains an example of a Linear "OpMode".
  * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
@@ -61,39 +63,66 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Simple_Auto", group="Linear OpMode")
+@Autonomous(name="April Test", group="Auto")
 //@Disabled
-public class SimpleAuto extends LinearOpMode {
+public class AprilTest2 extends LinearOpMode {
 
 
-        // Create a RobotHardware object to be used to access robot hardware.
-        // Prefix any hardware functions with "robot." to access this class.
-        RobotHardware robot = new RobotHardware(this);
+    // Create a RobotHardware object to be used to access robot hardware.
+    // Prefix any hardware functions with "robot." to access this class.
+    RobotHardware robot = new RobotHardware(this);
 
-        // Declare OpMode members.
-        private ElapsedTime runtime = new ElapsedTime();
+    // Declare OpMode members.
+    private ElapsedTime runtime = new ElapsedTime();
 
 
-        @Override
-        public void runOpMode() {
+    //@Override
+    public void runOpMode() {
 
-            // initialize all the hardware, using the hardware class. See how clean and simple this is?
-            robot.init();
+        // initialize all the hardware, using the hardware class. See how clean and simple this is?
+        robot.init();
 
-            telemetry.addData("Status", "Initialized");
-            telemetry.update();
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
 
-            // Wait for the game to start (driver presses START)
-            waitForStart();
+        //turn on camera.
+        robot.initVision();
+        robot.enableVision();
 
-            // Reset the runtime timer
-            runtime.reset();
+        //switch Cam 1
+        robot.switchCamera(1);
 
-            //turn on camera.
-            robot.forward(500, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
 
-            // Make sure robot stops (teleop initialization default) before OpMode dies
-            robot.stop();
+        // Wait for the game to start (driver presses START)
+        waitForStart();
 
+        // Reset the runtime timer
+        runtime.reset();
+
+        for (AprilTagDetection tagId: robot.getAprilTags())
+        {
+            if (tagId.id == 21)
+            {
+                robot.forwardKebob(.5);
+            }
+            else if (tagId.id == 22)
+            {
+                robot.shoot();
+            }
+            else if (tagId.id == 23)
+            {
+                robot.forward(200, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
+            }
+            else
+            {
+                ;
+            }
         }
+
+        sleep(30000);
+
+        // Make sure robot stops (teleop initialization default) before OpMode dies
+        robot.stop();
+
     }
+}

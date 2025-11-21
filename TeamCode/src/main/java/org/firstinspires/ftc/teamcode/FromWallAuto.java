@@ -63,9 +63,9 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Red Wall Auto", group="Auto")
+@Autonomous(name="From Wall Auto", group="Auto")
 //@Disabled
-public class RedWallAuto extends LinearOpMode {
+public class FromWallAuto extends LinearOpMode {
 
 
 
@@ -87,13 +87,6 @@ public class RedWallAuto extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        //turn on camera.
-        robot.initVision();
-        robot.enableVision();
-
-        //switch Cam 1
-        robot.switchCamera(1);
-
 
         // Wait for the game to start (driver presses START)
         waitForStart();
@@ -102,42 +95,33 @@ public class RedWallAuto extends LinearOpMode {
         runtime.reset();
 
         //Checks which April Tag is in play
-        robot.forward(150, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                //move off wall barely
+                robot.forward(-1350, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
+                //shoot Motor On
+                robot.shootOn(isFar);
+                //waits for 1st rev
+                sleep(2500);
+                //shoots first ball
+                robot.reverseKebob(0.2);
 
-        robot.turn(Math.PI/2, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                sleep(400);
+                //waits for 2nd rev
+                robot.kebobOff();
 
-        robot.forward(200, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //shoot Motor On
-        robot.shootOn(isFar);
-        //turn toward Ramp
-        robot.turn(-15*Math.PI/24,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //waits for 1st rev
-        sleep(1600);
-        //shoots first ball
-        robot.reverseKebob(0.23);
+                sleep(1500);
 
-        sleep(400);
-        //waits for 2nd rev
-        robot.kebobOff();
+                //shoots 2nd
+                robot.reverseKebob(0.2);
 
-        sleep(1500);
+                sleep(2500);
 
-        //shoots 2nd
-        robot.reverseKebob(0.21);
+                robot.kebobOff();
 
-        sleep(2500);
-
-        robot.kebobOff();
-
-        robot.shootOff();
-
-        robot.turn(-Math.PI/6,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        robot.forward(250, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                robot.shootOff();
 
 
 
-
+        sleep(30000);
 
         // Make sure robot stops (teleop initialization default) before OpMode dies
         robot.stop();

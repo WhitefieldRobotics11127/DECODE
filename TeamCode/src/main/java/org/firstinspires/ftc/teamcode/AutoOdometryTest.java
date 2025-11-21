@@ -51,12 +51,12 @@ public class AutoOdometryTest extends LinearOpMode {
         // facing parallel to the red alliance wall.
 
         // Move forward 2500 mm and display odometry telemetry
-        if (opModeIsActive()) {
-            telemetry.addData("Running forward(2000) call...", false);
-            telemetry.update();
-            robot.forward(2000, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
-            showTelemetryAndWait();
-        }
+       // if (opModeIsActive()) {
+         //   telemetry.addData("Running forward(2000) call...", false);
+           // telemetry.update();
+           // robot.forward(2000, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
+            //showTelemetryAndWait();
+        //}
 
         // Strafe left 2000 mm
         if (opModeIsActive()) {

@@ -87,12 +87,7 @@ public class BlueWallAuto extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        //turn on camera.
-        robot.initVision();
-        robot.enableVision();
 
-        //switch Cam 1
-        robot.switchCamera(1);
 
 
         // Wait for the game to start (driver presses START)
@@ -101,25 +96,19 @@ public class BlueWallAuto extends LinearOpMode {
         // Reset the runtime timer
         runtime.reset();
 
-        //Checks which April Tag is in play
-        for (AprilTagDetection tagId: robot.getAprilTags())
-        {
-            if (tagId.id == 21)
-            {
-                //move off wall barely
                 robot.forward(150, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-                //strafe right slightly
-                robot.turn(Math.PI/2,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL );
-                //move off wall barely
-                robot.forward(250, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+                robot.turn(-Math.PI/2, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+            robot.forward(200, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
                 //shoot Motor On
                 robot.shootOn(isFar);
                 //turn toward Ramp
-                robot.turn(-(Math.PI/3),RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                robot.turn(15*Math.PI/24,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
                 //waits for 1st rev
                 sleep(1600);
                 //shoots first ball
-                robot.reverseKebob(0.21);
+                robot.reverseKebob(0.23);
 
                 sleep(400);
                 //waits for 2nd rev
@@ -128,104 +117,21 @@ public class BlueWallAuto extends LinearOpMode {
                 sleep(1500);
 
                 //shoots 2nd
-                robot.reverseKebob(0.2);
-
-                sleep(2500);
-
-                robot.kebobOff();
-
-                robot.shootOff();
-
-                robot.turn(-Math.PI/3,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-                robot.forward(250, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-
-            }
-            else if (tagId.id == 22)
-            {
-                //move off wall barely
-                robot.forward(150, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-                //strafe right slightly
-                robot.turn(Math.PI/2,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL );
-                //move off wall barely
-                robot.forward(250, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-                //shoot Motor On
-                robot.shootOn(isFar);
-                //turn toward Ramp
-                robot.turn(-(Math.PI/3),RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-                //waits for 1st rev
-                sleep(1600);
-                //shoots first ball
                 robot.reverseKebob(0.21);
 
-                sleep(400);
-                //waits for 2nd rev
-                robot.kebobOff();
-
-                sleep(1500);
-
-                //shoots 2nd
-                robot.reverseKebob(0.2);
-
                 sleep(2500);
+
 
                 robot.kebobOff();
 
                 robot.shootOff();
 
-                robot.turn(-Math.PI/3,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                robot.turn(Math.PI/6,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
                 robot.forward(250, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
 
 
-            }
-            else if (tagId.id == 23)
-            {
-                //move off wall barely
-                robot.forward(150, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-                //strafe right slightly
-                robot.turn(Math.PI/2,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL );
-                //move off wall barely
-                robot.forward(250, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-                //shoot Motor On
-                robot.shootOn(isFar);
-                //turn toward Ramp
-                robot.turn(-(Math.PI/3),RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-                //waits for 1st rev
-                sleep(1600);
-                //shoots first ball
-                robot.reverseKebob(0.21);
-
-                sleep(400);
-                //waits for 2nd rev
-                robot.kebobOff();
-
-                sleep(1500);
-
-                //shoots 2nd
-                robot.reverseKebob(0.2);
-
-                sleep(2500);
-
-                robot.kebobOff();
-
-                robot.shootOff();
-
-                robot.turn(-Math.PI/3,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-                robot.forward(250, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-
-            }
-            else
-            {
-                ;
-            }
-        }
-
-        sleep(30000);
 
         // Make sure robot stops (teleop initialization default) before OpMode dies
         robot.stop();

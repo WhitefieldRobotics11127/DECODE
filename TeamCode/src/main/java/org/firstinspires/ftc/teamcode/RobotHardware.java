@@ -571,7 +571,7 @@ public class RobotHardware {
         lastLeftEncoderPosition = leftDeadwheelEncoder.getCurrentPosition() * DEADWHEEL_LEFT_DIRECTION;
         lastAuxEncoderPosition = auxDeadwheelEncoder.getCurrentPosition() * DEADWHEEL_AUX_DIRECTION;
 
-        // calculate x, y, n1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       and theta (heading) deltas (robot perspective) since last measurement
+        // calculate x, y, n1. d equals delta                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       and theta (heading) deltas (robot perspective) since last measurement
         int dl = lastLeftEncoderPosition - oldLeftCounter;
         int dr = lastRightEncoderPosition - oldRightCounter;
         int da = lastAuxEncoderPosition - oldAuxOdometryCounter;
@@ -751,6 +751,9 @@ public class RobotHardware {
             move(xPower, yPower, yawPower, speed);
         }
 
+        myOpMode.telemetry.addData("Y Odometry:", yOdometryCounter);
+        myOpMode.telemetry.update();
+
         // stop the robot
         stop();
     }
@@ -816,11 +819,11 @@ public class RobotHardware {
         launcherMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         if (far)
         {
-            launcherMotor.setPower(.85);
+            launcherMotor.setPower(.78);
         }
         else
         {
-            launcherMotor.setPower(0.85);
+            launcherMotor.setPower(0.78);
 
 
         }
@@ -853,6 +856,12 @@ public class RobotHardware {
         kebobMotor.setPower(power - .1);
     }
 
+    /* ------- Odometry Calculation ----- */
+    public void strafeTest()
+    {
+        forward(100, MOTOR_SPEED_FACTOR_PRECISE);
+        strafe(100, MOTOR_SPEED_FACTOR_AUTONOMOUS);
+    }
 
     /* ----- Vision processing methods ----- */
 

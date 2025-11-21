@@ -63,9 +63,9 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Wall Auto", group="Auto")
+@Autonomous(name="Red Wall Auto", group="Auto")
 //@Disabled
-public class WallAuto extends LinearOpMode {
+public class RedWallAuto extends LinearOpMode {
 
 
 
@@ -101,39 +101,121 @@ public class WallAuto extends LinearOpMode {
         // Reset the runtime timer
         runtime.reset();
 
+        //Checks which April Tag is in play
         for (AprilTagDetection tagId: robot.getAprilTags())
         {
             if (tagId.id == 21)
             {
-                //The initial movement forward from the wall (THIS WILL CHANGE FOR ALL THREE)
-                robot.forward(500, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                //move off wall barely
+                robot.forward(150, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                //strafe right slightly
+                robot.turn(-Math.PI/2,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL );
+                //move off wall barely
+                robot.forward(250, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                //shoot Motor On
+                robot.shootOn(isFar);
+                //turn toward Ramp
+                robot.turn(Math.PI/3,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                //waits for 1st rev
+                sleep(1600);
+                //shoots first ball
+                robot.reverseKebob(0.21);
 
-                robot.turn(-(Math.PI/2),RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                sleep(400);
+                //waits for 2nd rev
+                robot.kebobOff();
 
-                robot.forwardKebob(0.25);
+                sleep(1500);
 
-                robot.forward(600, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
+                //shoots 2nd
+                robot.reverseKebob(0.2);
+
+                sleep(2500);
 
                 robot.kebobOff();
 
-                robot.forward(-600, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
+                robot.shootOff();
 
-                robot.turn(-(Math.PI/2),RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                robot.turn(Math.PI/3,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-                robot.shootOn(isFar);
+                robot.forward(300, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-                robot.forward(-500, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS );
 
-                robot.forwardKebob(0.05);
 
             }
             else if (tagId.id == 22)
             {
-                robot.shoot();
+                //move off wall barely
+                robot.forward(150, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                //strafe right slightly
+                robot.turn(-Math.PI/2,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL );
+                //move off wall barely
+                robot.forward(250, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                //shoot Motor On
+                robot.shootOn(isFar);
+                //turn toward Ramp
+                robot.turn(Math.PI/3,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                //waits for 1st rev
+                sleep(1600);
+                //shoots first ball
+                robot.reverseKebob(0.23);
+
+                sleep(450);
+                //waits for 2nd rev
+                robot.kebobOff();
+
+                sleep(1500);
+
+                //shoots 2nd
+                robot.reverseKebob(0.23);
+
+                sleep(2500);
+
+                robot.kebobOff();
+
+                robot.shootOff();
+
+                robot.turn(Math.PI/3,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+                robot.forward(300, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
             }
             else if (tagId.id == 23)
             {
-                robot.forward(200, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
+                //move off wall barely
+                robot.forward(150, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                //strafe right slightly
+                robot.turn(-Math.PI/2,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL );
+                //move off wall barely
+                robot.forward(250, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                //shoot Motor On
+                robot.shootOn(isFar);
+                //turn toward Ramp
+                robot.turn(Math.PI/3,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                //waits for 1st rev
+                sleep(1600);
+                //shoots first ball
+                robot.reverseKebob(0.21);
+
+                sleep(400);
+                //waits for 2nd rev
+                robot.kebobOff();
+
+                sleep(1500);
+
+                //shoots 2nd
+                robot.reverseKebob(0.2);
+
+                sleep(2500);
+
+                robot.kebobOff();
+
+                robot.shootOff();
+
+                robot.turn(Math.PI/3,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+                robot.forward(300, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+
             }
             else
             {

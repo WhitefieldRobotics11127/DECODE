@@ -78,7 +78,7 @@ public class RobotHardware {
     /**
      * Separate speed for Autonomous movement commands to use.
      */
-    public static final double MOTOR_SPEED_FACTOR_AUTONOMOUS = 0.5;
+    public static final double MOTOR_SPEED_FACTOR_AUTONOMOUS = 0.44;
 
     // Allowable limits for arm rotation
     // NOTE: These are [0, 1) within voltage rage of potentiometer
@@ -816,11 +816,13 @@ public class RobotHardware {
         launcherMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         if (far)
         {
-            launcherMotor.setPower(0.85);
+            launcherMotor.setPower(.85);
         }
         else
         {
-            launcherMotor.setPower(0.75);
+            launcherMotor.setPower(0.85);
+
+
         }
     }
     public void shootOff() {
@@ -848,7 +850,7 @@ public class RobotHardware {
     }
     public void forwardKebob(double power) {
         kebobMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        kebobMotor.setPower(power);
+        kebobMotor.setPower(power - .1);
     }
 
 

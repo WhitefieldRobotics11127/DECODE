@@ -263,8 +263,8 @@ public class RobotHardware {
     // the DCMotorEx class.
     private DcMotorEx leftFrontDrive, rightFrontDrive, leftBackDrive, rightBackDrive;  //  Motors for Mecanum drive
     private DcMotorEx rightDeadwheelEncoder, leftDeadwheelEncoder, auxDeadwheelEncoder; // Encoders (deadwheels) for odometry
-    private DcMotorEx kebobMotor; // Motor for "Kebob" motor
-    private DcMotorEx launcherMotor; // Motors for the launcher motor
+    private DcMotorEx sizzleMotor, steakMotor; //Motor for "Kebob" motor
+    private DcMotorEx leftLauncherMotor, rightLauncherMotor; // Motors for the launcher motor
     private AnalogInput armRotationPositionSensor; // Potentiometer for arm rotation position
     private Servo lockServo; // Servo for the lock-in-place
     private VisionPortal visionPortal; // Used to manage the camera input and activation of video processors.
@@ -387,27 +387,46 @@ public class RobotHardware {
         auxDeadwheelEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
 
 
-        // Define launcher hardware instance variables
-        // NOTE: ****** The rotation motor uses the same motor port as the auxiliary deadwheel encoder
-        kebobMotor = auxDeadwheelEncoder; // Use the same hardware mapping as the auxiliary odometry encoder
-        launcherMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "launcher_motor");
 
+
+        // Define launcher hardware instance variables
+        //
+        sizzleMotor = auxDeadwheelEncoder; // Use the same hardware mapping as the auxiliary odometry encoder
+        steakMotor = leftDeadwheelEncoder; // Use the same hardware mapping as the left odometry encoder
+        leftLauncherMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "left_launcher_motor");
+        rightLauncherMotor = rightDeadwheelEncoder;
 
 
         // Initialize settings for launcher and kebob motor
-        launcherMotor.setDirection(DcMotorEx.Direction.REVERSE);
-        launcherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        leftLauncherMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        leftLauncherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
-        kebobMotor.setDirection(DcMotorEx.Direction.REVERSE);
-        kebobMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        kebobMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightLauncherMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        rightLauncherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        rightLauncherMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //kebobMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        //kebobMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        //kebobMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
+        sizzleMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        sizzleMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        sizzleMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
+
+        steakMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        steakMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        steakMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         // Reset the encoder count to zero and make sure the motor is stopped
         // NOTE: the viper slide should be fully retracted before "Start" is pressed
         //launcherMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        //launcherMotor.setPower(0.0);
+        leftLauncherMotor.setPower(0.0);
+        rightLauncherMotor.setPower(0.0);
 
         // Set the run mode to RUN_WITHOUT_ENCODER
-        launcherMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        leftLauncherMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        rightLauncherMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         // Initialize settings for arm motor
         // NOTE: Run the motor in forward direction so that power to the motor is positive when
         // tilting down. This allows the direction of rotation to track with the direction of the
@@ -417,8 +436,10 @@ public class RobotHardware {
         // very strong. *****
 
         //Change directions for shooter motors
-        launcherMotor.setDirection(DcMotorEx.Direction.FORWARD);
-        launcherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        leftLauncherMotor.setDirection(DcMotorEx.Direction.FORWARD);
+        leftLauncherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        rightLauncherMotor.setDirection(DcMotorEx.Direction.FORWARD);
+        rightLauncherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
 
         // Get the maximum voltage from the arm rotation potentiometer for calculating arm rotation
@@ -719,7 +740,7 @@ public class RobotHardware {
 
         // Proportional controllers for x, y, and yaw
         PController xController = new PController(0.0, X_POSITION_TOLERANCE, X_CONTROLLER_DEADBAND, X_CONTROLLER_KP);
-        PController yController = new PController(-distance, Y_POSITION_TOLERANCE, Y_CONTROLLER_DEADBAND, Y_CONTROLLER_KP);
+        PController yController = new PController(distance, Y_POSITION_TOLERANCE, Y_CONTROLLER_DEADBAND, Y_CONTROLLER_KP);
         PController yawController = new PController(0.0, HEADING_TOLERANCE, YAW_CONTROLLER_DEADBAND, YAW_CONTROLLER_KP);
 
         // Flag to determine if called from a Liner OpMode
@@ -743,7 +764,7 @@ public class RobotHardware {
             // Calculate the control output for each of the three controllers
             double xPower = clip(xController.calculate(xOdometryCounter), -1.0, 1.0);
             //double xPower = 0.0;
-            double yPower = clip(yController.calculate(yOdometryCounter), -1.0, 1.0);
+            double yPower = clip(yController.calculate(xOdometryCounter), -1.0, 1.0);
             double yawPower = clip(yawController.calculate(headingOdometryCounter), -1.0, 1.0);
             //double yawPower = 0.0;
 
@@ -805,55 +826,120 @@ public class RobotHardware {
         stop();
     }
 
+    /**
+     * Turn a relative angle but customizable.
+     * This method should be called from a LinerOpMode and implements its own loop to cover the
+     * robot's motion to the specified position.
+     *
+     * @param angle Angle to rotate in Radians: + is counter-clockwise, - is clockwise
+     * @param speed Speed factor to apply (should use defined constants)
+     */
+    public void turnCustom(double angle, double speed) {
+
+        // Proportional controller heading
+        // NOTE: Maintaining proportional controllers for x and y at zero to prevent drift doesn't
+        // seem to work very well due to the linear nature of the odometry calculations and/or the
+        // lack of calibration of DEADWHEEL_FORWARD_OFFSET parameter. For now, we just use a simple
+        // P-controller for heading.
+        PController yawController = new PController(angle, HEADING_TOLERANCE, YAW_CONTROLLER_DEADBAND, YAW_CONTROLLER_KP);
+
+        // Flag to determine if called from a Liner OpMode
+        boolean isLinearOpMode = myOpMode instanceof LinearOpMode;
+
+        // reset the odometry counters to zero
+        resetOdometryCounters();
+
+        // Loop until the robot has reached the desired position
+        // NOTE: opModeIsActive() calls idle() internally, so we don't need to call idle()
+        // in the loop
+        while (!isLinearOpMode || ((LinearOpMode) myOpMode).opModeIsActive()) {
+
+            // Update the odometry counters
+            updateOdometry();
+
+            // If we have reached the desired position, break out of the loop
+            if (yawController.isWithinTolerance(headingOdometryCounter))
+                break;
+
+            // Calculate the control output for each of the three controllers
+            double yawPower = clip(yawController.calculate(headingOdometryCounter), -1.0, 1.0);
+
+            // Move the robot based on the calculated powers
+            // NOTE: We reduced the yaw power by 60% to make the robot turn more slowly and accurately
+            move(0, 0, yawPower, speed * .3);
+        }
+
+        // stop the robot
+        stop();
+    }
+
     /* ------ Shooter Methods ----- */
-    public void shoot() {
-        launcherMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        //Spin the wheel
-        launcherMotor.setPower(0.85);
-        //Wait for 1/2 a second
-        sleep(700);
-        //Stop spinning the wheel
-        launcherMotor.setPower(0);
-    }
-    public void shootOn(boolean far) {
-        launcherMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        if (far)
-        {
-            launcherMotor.setPower(.78);
-        }
-        else
-        {
-            launcherMotor.setPower(0.78);
 
+    public void shootOn(double power) {
+        //Set directions of the launch motor
+        leftLauncherMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightLauncherMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        }
+        //Set power of the motors
+        leftLauncherMotor.setPower(power/2);
+        rightLauncherMotor.setPower(power/2);
     }
-    public void shootOff() {
-        launcherMotor.setPower(0);
+    public void shootOff() {  // turns off the shooter
+        leftLauncherMotor.setPower(0);
+        rightLauncherMotor.setPower(0);
     }
     /*------ Kebob Methods ------ */
 
-    public void kebobOff() {
-        kebobMotor.setPower(0);
+    public void sizzleOff() {
+        sizzleMotor.setPower(0);
     }
 
+    public void steakOff() {
+      steakMotor.setPower(0);
+   }
+    public void forwardSizzleSteak(double power) {
+        sizzleMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        steakMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        sizzleMotor.setPower(power);
+        steakMotor.setPower(power);
+    }
+
+    public void reverseSizzleSteak(double power) {
+        sizzleMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        steakMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        sizzleMotor.setPower(power);
+        steakMotor.setPower(power);
+    }
+
+    public void sizzleSteakOff()
+    {
+        sizzleMotor.setPower(0);
+        steakMotor.setPower(0);
+
+    }
 
     public void reverseLauncher() {
-        launcherMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftLauncherMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         //Spin the wheel
-        launcherMotor.setPower(0.5);
+        leftLauncherMotor.setPower(0.5);
         //Wait for 1/2 a second
         sleep(700);
         //Stop spinning the wheel
-        launcherMotor.setPower(0);
+        leftLauncherMotor.setPower(0);
     }
-    public void reverseKebob(double power) {
-        kebobMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        kebobMotor.setPower(power);
+    public void reverseSizzle(double power) {
+        sizzleMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        sizzleMotor.setPower(power);
     }
-    public void forwardKebob(double power) {
-        kebobMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        kebobMotor.setPower(power - .1);
+    public void reverseSteak(double power) {
+        steakMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        steakMotor.setPower(power);
+    }
+    public void forwardSizzle(double power) {
+        sizzleMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        sizzleMotor.setPower(power);
     }
 
     /* ------- Odometry Calculation ----- */

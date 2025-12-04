@@ -98,31 +98,31 @@ public class BlueWallAuto extends LinearOpMode {
 
                 robot.forward(150, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-                robot.turn(-Math.PI/2, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                robot.turnCustom(-Math.PI/2, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
             robot.forward(200, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
                 //shoot Motor On
-                robot.shootOn(isFar);
+                robot.shootOn(0.78);
                 //turn toward Ramp
                 robot.turn(15*Math.PI/24,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
                 //waits for 1st rev
-                sleep(1600);
+                sleep(800);
                 //shoots first ball
-                robot.reverseKebob(0.23);
+                robot.reverseSizzleSteak(0.23);
 
                 sleep(400);
                 //waits for 2nd rev
-                robot.kebobOff();
+                robot.sizzleSteakOff();
 
-                sleep(1500);
+                sleep(750);
 
                 //shoots 2nd
-                robot.reverseKebob(0.21);
+                robot.reverseSizzleSteak(0.21);
 
                 sleep(2500);
 
 
-                robot.kebobOff();
+                robot.sizzleSteakOff();
 
                 robot.shootOff();
 

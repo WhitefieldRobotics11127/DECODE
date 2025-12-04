@@ -98,24 +98,24 @@ public class FromWallAuto extends LinearOpMode {
                 //move off wall barely
                 robot.forward(-1350, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
                 //shoot Motor On
-                robot.shootOn(isFar);
+                robot.shootOn(0.78);
                 //waits for 1st rev
-                sleep(2500);
+                sleep(1250);
                 //shoots first ball
-                robot.reverseKebob(0.2);
+                robot.reverseSizzleSteak(0.2);
 
                 sleep(400);
                 //waits for 2nd rev
-                robot.kebobOff();
+                robot.sizzleSteakOff();
 
-                sleep(1500);
+                sleep(750);
 
                 //shoots 2nd
-                robot.reverseKebob(0.2);
+                robot.reverseSizzleSteak(0.2);
 
-                sleep(2500);
+                sleep(1250);
 
-                robot.kebobOff();
+                robot.sizzleSteakOff();
 
                 robot.shootOff();
 

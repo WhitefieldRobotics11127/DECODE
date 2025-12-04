@@ -89,8 +89,8 @@ public class SimpleAuto extends LinearOpMode {
             // Reset the runtime timer
             runtime.reset();
 
-            //turn on camera.
-            robot.forward(500, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
+            //turnCustom test.
+            robot.turnCustom(Math.PI/2, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
             // Make sure robot stops (teleop initialization default) before OpMode dies
             robot.stop();

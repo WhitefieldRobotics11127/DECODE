@@ -110,7 +110,7 @@ public class RedWallAuto extends LinearOpMode {
         //shoot Motor On
         robot.shootOn(0.78);
         //turn toward Ramp
-        robot.turn(-15*Math.PI/24,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+        robot.turnCustom(-15*Math.PI/24,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
         //waits for 1st rev
         sleep(1600);
         //shoots first ball

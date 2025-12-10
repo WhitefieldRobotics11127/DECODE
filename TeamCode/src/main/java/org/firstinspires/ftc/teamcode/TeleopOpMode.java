@@ -168,11 +168,11 @@ public class TeleopOpMode extends OpMode
         //Controls for Player 2 - Shoot Person
         if (gamepad2.dpad_up && !lastGamepad2.dpad_up)
         {
-            robot.forwardSizzleSteak(0.25);
+            robot.forwardSizzleSteak(0.125);
         }
         if (gamepad2.dpad_down && !lastGamepad2.dpad_down)
         {
-            robot.reverseSizzleSteak(0.25);
+            robot.reverseSizzleSteak(0.125);
         }
         if (gamepad2.right_bumper)
             isFar = true;
@@ -180,7 +180,7 @@ public class TeleopOpMode extends OpMode
             isFar = false;
 
         if (gamepad2.a)
-            robot.shootOn(.78);
+            robot.shootOn(.58);
         if (gamepad2.b)
             robot.shootOff();
 

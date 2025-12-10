@@ -7,8 +7,6 @@
  *
  * Support for Mecanum (Omni) drivetrain, odometry, IMU, and vision processing is included, which
  * can (hopefully) be reused from year to year. Support for INTO THE DEEP game-specific hardware,
- * such as the Viper-Slide arm and the servos for the claw are season-specific but can serve as
- * examples.
  *
  * Also included in this class are methods and classes for performing autonomous motion using
  * odometry. Odometry calculations and forward, strafe, and turn functions are included.
@@ -31,6 +29,8 @@ package org.firstinspires.ftc.teamcode;
 import static android.os.SystemClock.sleep;
 import static com.qualcomm.robotcore.util.Range.clip;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+
 import android.util.Size;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -43,6 +43,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -59,14 +60,14 @@ import java.util.ArrayList;
 /**
  * Hardware abstraction class for WA Robotics DECODE competition robot
  */
-public class RobotHardware {
+public class RobotHardware  {
 
     /* ----- Public constants (so they can be used by the calling OpMode) ----- */
     // Allow drivetrain to operate in different at different, selectable "speeds"
     /**
      * Normal speed for movement commands.
      */
-    public static final double MOTOR_SPEED_FACTOR_NORMAL = 0.6;
+    public static final double MOTOR_SPEED_FACTOR_NORMAL = 0.75;
     /**
      * "Sprint" speed for movement commands.
      */
@@ -80,52 +81,6 @@ public class RobotHardware {
      */
     public static final double MOTOR_SPEED_FACTOR_AUTONOMOUS = 0.44;
 
-    // Allowable limits for arm rotation
-    // NOTE: These are [0, 1) within voltage rage of potentiometer
-    /**
-     * Minimum safe rotational position for arm.
-     * NOTE: Fully upright arm is the "minimum" position (within 0.0 to 1.0 range) in order to 
-     * directly track with position sensor (potentiometer) values. 
-     */
-    //public static final double ARM_ROTATION_MIN = 0.0;
-    /**
-     * Maximum safe rotational position for arm.
-     * NOTE: Fully rotated down is the "maximum" position (within 0.0 to 1.0 range) in order to 
-     * directly track with position sensor (potentiometer) values. 
-     */
-    //public static final double ARM_ROTATION_MAX = 0.40;
-
-    // Limits for extension of arm.
-    /**
-     * Encoder position for fully extended viper slide (arm) when horizontal.
-     * This value is set lower than the physical extension limit to fit into the 42" lateral reach
-     * limit in the FTC rules. Use the extendArmToLimit() method to extend the arm to the maximum
-     * allowable limit based on the arm rotation position.
-     * NOTE: This assumes that the fully retracted is currently set as 0 encoder value.
-     */
-    //public static final int ARM_EXTENSION_LIMIT = 2640;
-    /**
-     * Encoder position for fully extended viper slide (arm) when vertical.
-     * This value is the maximum physical extension limit and is not subject the 42" limit of the
-     * FTC rules when the arm is vertical. This can be used, e.g., when reaching for the the top
-     * bucket on the INTO THE DEEP field. Use the extendArmToLimit() method to extend the arm to the
-     * maximum allowable limit based on the arm rotation position.
-     * NOTE: This assumes that the fully retracted is currently set as 0 encoder value.
-     */
-    //public static final int ARM_EXTENSION_LIMIT_FULL = 2915;
-
-    // Servo positions for claw
-    // NOTE: these are [0, 1) within the min and max range set for the servo
-    /** Servo position for open claw. */
-    //public static final double CLAW_SERVO_OPEN = 0.5;
-    /** Servo position for closed claw. */
-    //public static final double CLAW_SERVO_CLOSE = 0.1;
-    /** Servo position for widest opening of claw. */
-    //public static final double CLAW_SERVO_OPEN_WIDE = 0.7;
-    /**
-     * Servo position for tightly gripping claw.
-     */
-    //static final double CLAW_SERVO_CLOSE_GRIP = 0.0;
 
     /* ----- Member variables (private so hidden from the calling OpMode) ----- */
 
@@ -150,9 +105,11 @@ public class RobotHardware {
      * coordinates). The values are initially set from physical measurements of the robot but should
      * be tweaked for accuracy from testing (e.g., spin test and/or strafe/curve testing).
      */
-    static final int DEADWHEEL_LEFT_DIRECTION = 1; // Allows for adjustment of + direction of left encoder - should be installed front to back
-    static final int DEADWHEEL_RIGHT_DIRECTION = -1; // Allows for adjustment of + direction of right encoder - should be installed front to back
-    static final int DEADWHEEL_AUX_DIRECTION = -1; // Allows for adjustment of + direction of aux encoder - should be installed left to right
+    // NOTE: These were changed to be modifiable to allow the init() method to adjust them according
+    // to the motor direction set for the motors connected to the same motor ports as the deadwheel
+    int DEADWHEEL_LEFT_DIRECTION = -1; // Allows for adjustment of + direction of left encoder - should be installed front to back
+    int DEADWHEEL_RIGHT_DIRECTION = -1; // Allows for adjustment of + direction of right encoder - should be installed front to back
+    int DEADWHEEL_AUX_DIRECTION = -1; // Allows for adjustment of + direction of aux encoder - should be installed left to right  - should be installed left to right
     // The following values were last calibrated 2024-12-23
     static final double DEADWHEEL_MM_PER_TICK = 0.07486; // MM per encoder tick (initially calculated 48MM diameter wheel @ 2000 ticks per revolution)
     static final double DEADWHEEL_FORWARD_OFFSET = -106.0; //forward offset (length B) of aux deadwheel from robot center of rotation in MM (negative if behind)
@@ -195,37 +152,7 @@ public class RobotHardware {
     static final double YAW_CONTROLLER_KD = 0.0; // Derivative gain for yaw (turning) error
     static final double YAW_CONTROLLER_KI = 0.0; // Integral gain for yaw (turning) error
 
-    /*
-     * Parameter values for arm (Viper-slide) and claw.
-     */
-    // Arm rotation position where the arm is considered "vertical" for selectively applying the
-    // two limit values ARM_EXTENSION_LIMIT and ARM_EXTENSION_LIMIT_FULL to the arm extension motor.
-    //static final double ARM_ROTATION_VERTICAL = 0.22;
 
-    // Limit the power to the rotation motor to prevent damage to the arm. This needs to be calibrated.
-    //static final double ARM_ROTATION_POWER_LIMIT_FACTOR = 0.7; // Factor to limit power to arm rotation motor
-
-    // Tolerances and proportional gain values for arm rotation position controller. These need to be calibrated.
-    //static final double ARM_ROTATION_DEADBAND = 0.006; // Deadband range for arm rotation position
-    //static final double ARM_ROTATION_TOLERANCE = 0.012; // Tolerance for arm rotation position
-    //static final double ARM_ROTATION_KP = 25.0; // Proportional gain for arm rotation position error
-
-    // Maximum voltage from arm rotation potentiometer
-    // NOTE: this is set in init() from the getMaxVoltage() method on the potentiometer and
-    // utilized to calculate an arm rotation position in the [0, 1)
-    // range.
-    //double ARM_ROTATION_MAX_VOLTAGE;
-
-    // Limit the power to the extension motor to prevent damage to the arm. This needs to be calibrated.
-    //static final double ARM_EXTENSION_POWER_LIMIT_FACTOR = 0.85; // Factor to limit power to arm extension motor
-
-    // Tolerances and proportional gain values for arm extension position controller. These need to be calibrated.
-    //static final int ARM_EXTENSION_DEADBAND = 25; // Deadband range for arm extension position in ticks (1/4 turn)
-    //static final double ARM_EXTENSION_KP = 0.00333; // Proportional gain for arm extension position error
-
-    // Servo position limits for claw
-    //static final double CLAW_SERVO_RANGE_MIN = 0.0;
-    //static final double CLAW_SERVO_RANGE_MAX = 0.5;
 
     /*
      * Constants for vision (AprilTag) processing.
@@ -265,8 +192,6 @@ public class RobotHardware {
     private DcMotorEx rightDeadwheelEncoder, leftDeadwheelEncoder, auxDeadwheelEncoder; // Encoders (deadwheels) for odometry
     private DcMotorEx sizzleMotor, steakMotor; //Motor for "Kebob" motor
     private DcMotorEx leftLauncherMotor, rightLauncherMotor; // Motors for the launcher motor
-    private AnalogInput armRotationPositionSensor; // Potentiometer for arm rotation position
-    private Servo lockServo; // Servo for the lock-in-place
     private VisionPortal visionPortal; // Used to manage the camera input and activation of video processors.
     private WebcamName webcam1, webcam2; // For identifying webcam(s)
 
@@ -303,10 +228,7 @@ public class RobotHardware {
     // keep a reference to the calling opmode so that we have access to hardwareMap and other
     // properties and statuses from the running opmode.
 
-    // flag to allow for suspension of arm extension limits. This is used to allow the viper slide
-    // to be re-homed and the limits to be reset, particularly after the transition from autonomous
-    // to teleop when the robot is reinitialized.
-    //private boolean armExtensionLimitsSuspended = false;
+
 
     private final OpMode myOpMode;
 
@@ -381,6 +303,10 @@ public class RobotHardware {
         leftDeadwheelEncoder = myOpMode.hardwareMap.get(DcMotorEx.class, "encoder_left");
         auxDeadwheelEncoder = myOpMode.hardwareMap.get(DcMotorEx.class, "encoder_aux");
 
+        leftDeadwheelEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightDeadwheelEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        auxDeadwheelEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         // Reset the encoder values
         rightDeadwheelEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         leftDeadwheelEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -391,32 +317,27 @@ public class RobotHardware {
 
         // Define launcher hardware instance variables
         //
-        sizzleMotor = auxDeadwheelEncoder; // Use the same hardware mapping as the auxiliary odometry encoder
-        steakMotor = leftDeadwheelEncoder; // Use the same hardware mapping as the left odometry encoder
-        leftLauncherMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "left_launcher_motor");
-        rightLauncherMotor = rightDeadwheelEncoder;
+         // se the same hardware mapping as the auxiliary odometry encoder
+         // Use the same hardware mapping as the left odometry encoder
+        sizzleMotor =  myOpMode.hardwareMap.get(DcMotorEx.class, "encoder_aux"); // Port 0
+        rightLauncherMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "encoder_right"); // Port 1
+        leftLauncherMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "left_launcher_motor"); //Port 2
+        steakMotor =  myOpMode.hardwareMap.get(DcMotorEx.class, "encoder_left"); // Port 3
+
+
 
 
         // Initialize settings for launcher and kebob motor
-        leftLauncherMotor.setDirection(DcMotorEx.Direction.REVERSE);
-        leftLauncherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-
-        rightLauncherMotor.setDirection(DcMotorEx.Direction.REVERSE);
-        rightLauncherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        rightLauncherMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        //kebobMotor.setDirection(DcMotorEx.Direction.REVERSE);
-        //kebobMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        //kebobMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
-        sizzleMotor.setDirection(DcMotorEx.Direction.REVERSE);
-        sizzleMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        sizzleMotor.setDirection(DcMotorEx.Direction.FORWARD);
+        sizzleMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         sizzleMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
 
         steakMotor.setDirection(DcMotorEx.Direction.REVERSE);
-        steakMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        steakMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         steakMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         // Reset the encoder count to zero and make sure the motor is stopped
         // NOTE: the viper slide should be fully retracted before "Start" is pressed
@@ -427,13 +348,7 @@ public class RobotHardware {
         // Set the run mode to RUN_WITHOUT_ENCODER
         leftLauncherMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         rightLauncherMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-        // Initialize settings for arm motor
-        // NOTE: Run the motor in forward direction so that power to the motor is positive when
-        // tilting down. This allows the direction of rotation to track with the direction of the
-        // rotation position sensor (potentiometer).
-        // NOTE: ***** Setting these values wrong can cause the arm and arm rotation hardware
-        // to be damaged because the arm can be over-rotated and the gearbox on the motor makes it
-        // very strong. *****
+
 
         //Change directions for shooter motors
         leftLauncherMotor.setDirection(DcMotorEx.Direction.FORWARD);
@@ -442,35 +357,7 @@ public class RobotHardware {
         rightLauncherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
 
-        // Get the maximum voltage from the arm rotation potentiometer for calculating arm rotation
-        // position in the [0, 1) range.
-        //ARM_ROTATION_MAX_VOLTAGE = armRotationPositionSensor.getMaxVoltage();
 
-        // Initialize settings for claw servo
-        // Set a limited range for claw servo to prevent damage to the claw
-        //lockServo.scaleRange(CLAW_SERVO_RANGE_MIN, CLAW_SERVO_RANGE_MAX);
-
-        // Define IMU hardware instance variable
-        //imu = myOpMode.hardwareMap.get(IMU.class, "imu");
-
-        // Set the IMU orientation on the robot
-        //imu.initialize(
-        //        new IMU.Parameters(
-        //                new RevHubOrientationOnRobot(
-        //                    RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-        //                    RevHubOrientationOnRobot.UsbFacingDirection.UP
-        //                )
-        //        )
-        //);
-
-        // Define distance sensor hardware instance variables
-        //frontDistanceSensor = myOpMode.hardwareMap.get(DistanceSensor.class, "front_distance");
-        //MAY REMOVE
-        //rearDistanceSensor = myOpMode.hardwareMap.get(DistanceSensor.class, "rear_distance");
-
-        // Initialize the vision portal and the AprilTag processor(s)
-        //if (vision)
-        //initVision();
     }
 
     /**
@@ -715,10 +602,12 @@ public class RobotHardware {
 
             // Calculate the control output for each of the three controllers
             double xPower = clip(xController.calculate(xOdometryCounter), -1.0, 1.0);
+
             double yPower = clip(yController.calculate(yOdometryCounter), -1.0, 1.0);
             //double yPower = 0.0;
             double yawPower = clip(yawController.calculate(headingOdometryCounter), -1.0, 1.0);
             //double yawPower = 0.0;
+
 
             // Move the robot based on the calculated powers
             move(xPower, yPower, yawPower, speed);
@@ -771,9 +660,6 @@ public class RobotHardware {
             // Move the robot based on the calculated powers
             move(xPower, yPower, yawPower, speed);
         }
-
-        myOpMode.telemetry.addData("Y Odometry:", yOdometryCounter);
-        myOpMode.telemetry.update();
 
         // stop the robot
         stop();
@@ -866,7 +752,7 @@ public class RobotHardware {
 
             // Move the robot based on the calculated powers
             // NOTE: We reduced the yaw power by 60% to make the robot turn more slowly and accurately
-            move(0, 0, yawPower, speed * .3);
+            move(0, 0, yawPower, speed);
         }
 
         // stop the robot
@@ -876,13 +762,10 @@ public class RobotHardware {
     /* ------ Shooter Methods ----- */
 
     public void shootOn(double power) {
-        //Set directions of the launch motor
-        leftLauncherMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        rightLauncherMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         //Set power of the motors
-        leftLauncherMotor.setPower(power/2);
-        rightLauncherMotor.setPower(power/2);
+        leftLauncherMotor.setPower(power);
+        rightLauncherMotor.setPower(power);
     }
     public void shootOff() {  // turns off the shooter
         leftLauncherMotor.setPower(0);
@@ -898,19 +781,13 @@ public class RobotHardware {
       steakMotor.setPower(0);
    }
     public void forwardSizzleSteak(double power) {
-        sizzleMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        steakMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-
         sizzleMotor.setPower(power);
         steakMotor.setPower(power);
     }
 
     public void reverseSizzleSteak(double power) {
-        sizzleMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        steakMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        sizzleMotor.setPower(power);
-        steakMotor.setPower(power);
+        sizzleMotor.setPower(-power);
+        steakMotor.setPower(-power);
     }
 
     public void sizzleSteakOff()
@@ -921,31 +798,19 @@ public class RobotHardware {
     }
 
     public void reverseLauncher() {
-        leftLauncherMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         //Spin the wheel
-        leftLauncherMotor.setPower(0.5);
+        leftLauncherMotor.setPower(-0.5);
         //Wait for 1/2 a second
         sleep(700);
         //Stop spinning the wheel
         leftLauncherMotor.setPower(0);
     }
-    public void reverseSizzle(double power) {
-        sizzleMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        sizzleMotor.setPower(power);
-    }
-    public void reverseSteak(double power) {
-        steakMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        steakMotor.setPower(power);
-    }
-    public void forwardSizzle(double power) {
-        sizzleMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        sizzleMotor.setPower(power);
-    }
 
     /* ------- Odometry Calculation ----- */
     public void strafeTest()
+
     {
-        forward(100, MOTOR_SPEED_FACTOR_PRECISE);
+        forward(100, MOTOR_SPEED_FACTOR_AUTONOMOUS);
         strafe(100, MOTOR_SPEED_FACTOR_AUTONOMOUS);
     }
 

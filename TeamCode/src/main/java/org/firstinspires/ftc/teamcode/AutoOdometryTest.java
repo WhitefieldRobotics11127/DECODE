@@ -49,14 +49,17 @@ public class AutoOdometryTest extends LinearOpMode {
 
         // NOTE: These steps assume the robot is initially positioned in the test square
         // facing parallel to the red alliance wall.
-
+        telemetry.addData("Odometry", "X: %.1f  Y: %.1f  Theta: %.3f",
+                robot.getOdometryX(), robot.getOdometryY(), robot.getOdometryHeading());
+        sleep(100000);
         // Move forward 2500 mm and display odometry telemetry
-       // if (opModeIsActive()) {
-         //   telemetry.addData("Running forward(2000) call...", false);
-           // telemetry.update();
-           // robot.forward(2000, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
-            //showTelemetryAndWait();
-        //}
+        if (opModeIsActive()) {
+            telemetry.addData("Odometry", "X: %.1f  Y: %.1f  Theta: %.3f",
+                    robot.getOdometryX(), robot.getOdometryY(), robot.getOdometryHeading());
+           telemetry.update();
+           robot.forward(2000, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
+           showTelemetryAndWait();
+        }
 
         // Strafe left 2000 mm
         if (opModeIsActive()) {

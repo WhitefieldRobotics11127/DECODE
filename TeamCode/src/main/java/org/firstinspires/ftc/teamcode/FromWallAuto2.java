@@ -31,9 +31,8 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.robot.Robot;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 /*
  * This file contains an example of a Linear "OpMode".
@@ -63,9 +62,9 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Red Wall Auto", group="Auto")
+@Autonomous(name="From Wall Auto - Blue", group="Auto")
 //@Disabled
-public class RedWallAuto extends LinearOpMode {
+public class FromWallAuto2 extends LinearOpMode {
 
 
 
@@ -87,13 +86,6 @@ public class RedWallAuto extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        //turn on camera.
-        robot.initVision();
-        robot.enableVision();
-
-        //switch Cam 1
-        robot.switchCamera(1);
-
 
         // Wait for the game to start (driver presses START)
         waitForStart();
@@ -102,38 +94,46 @@ public class RedWallAuto extends LinearOpMode {
         runtime.reset();
 
         //Checks which April Tag is in play
-        robot.forward(150, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+        //move off wall barely
+        robot.forward(-1650, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
+        //call shoot two -- 1st shot from goal
+        shootTwo();
 
-        robot.turn(Math.PI/2, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-        robot.forward(200, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //shoot Motor On
-        robot.shootOn(.68);
-        //turn toward Ramp
-        robot.turn(-15*Math.PI/24,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //waits for 1st rev
-        sleep(1600);
-        //shoots first ball
-        robot.reverseSizzleSteak(0.23);
+        robot.turn(Math.PI / 3, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-        sleep(400);
-        //waits for 2nd rev
-        robot.sizzleSteakOff();
+        robot.forwardSizzleSteak(0.7);
 
-        sleep(1500);
-
-        //shoots 2nd
-        robot.reverseSizzleSteak(0.21);
-
-        sleep(2500);
+        robot.forward(700, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
         robot.sizzleSteakOff();
 
-        robot.shootOff();
+        robot.forward(-700, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-        robot.turn(-Math.PI/6,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+        robot.turn(-Math.PI / 3, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-        robot.forward(250, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+        shootTwo();
+
+        robot.turn(Math.PI / 3, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+        robot.strafe(600, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+        robot.forwardSizzleSteak(.7);
+
+        robot.forward(700, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+        robot.sizzleSteakOff();
+
+        robot.forward(-700, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+        robot.turn(-Math.PI / 3, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+        shootTwo();
+
+        robot.strafe(600, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+
+        robot.strafe(600, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
 
 
@@ -141,6 +141,37 @@ public class RedWallAuto extends LinearOpMode {
 
         // Make sure robot stops (teleop initialization default) before OpMode dies
         robot.stop();
+    }
 
+    public void shootTwo() {
+        robot.shootOn(.66);
+        //waits for 1st rev
+        sleep(1250);
+        //shoots first ball
+        robot.forwardSizzleSteak(0.7);
+
+        sleep(400);
+        //waits for 2nd rev
+        robot.sizzleSteakOff();
+
+        sleep(750);
+
+        //shoots 2nd
+        robot.forwardSizzleSteak(0.7);
+
+        sleep(1700);
+
+        robot.sizzleSteakOff();
+
+
+        robot.shootOff();
     }
 }
+
+
+
+
+
+
+
+

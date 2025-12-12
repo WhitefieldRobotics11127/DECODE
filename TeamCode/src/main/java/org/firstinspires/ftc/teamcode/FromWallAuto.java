@@ -63,7 +63,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="From Wall Auto", group="Auto")
+@Autonomous(name="From Wall Auto - Red", group="Auto")
 //@Disabled
 public class FromWallAuto extends LinearOpMode {
 
@@ -98,11 +98,11 @@ public class FromWallAuto extends LinearOpMode {
                 //move off wall barely
                 robot.forward(-1350, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
                 //shoot Motor On
-                robot.shootOn(0.78);
+                robot.shootOn(.66);
                 //waits for 1st rev
                 sleep(1250);
                 //shoots first ball
-                robot.reverseSizzleSteak(0.2);
+                robot.forwardSizzleSteak(0.7);
 
                 sleep(400);
                 //waits for 2nd rev
@@ -111,13 +111,50 @@ public class FromWallAuto extends LinearOpMode {
                 sleep(750);
 
                 //shoots 2nd
-                robot.reverseSizzleSteak(0.2);
+                robot.forwardSizzleSteak(0.7);
 
-                sleep(1250);
+                sleep(3000);
 
                 robot.sizzleSteakOff();
 
                 robot.shootOff();
+
+
+
+                robot.turn(-Math.PI/3, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+                robot.forwardSizzleSteak(0.7);
+
+                robot.forward(400, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+                robot.sizzleSteakOff();
+
+                robot.forward(-400, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+                robot.turn(Math.PI/3, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+                robot.shootOn(.66);
+
+                sleep(1250);
+
+                robot.forwardSizzleSteak(.7);
+
+
+
+        sleep(400);
+        //waits for 2nd rev
+        robot.sizzleSteakOff();
+
+        sleep(750);
+
+        //shoots 2nd
+        robot.forwardSizzleSteak(0.7);
+
+        sleep(3000);
+
+        robot.sizzleSteakOff();
+
+                robot.strafe(-600, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
 
 

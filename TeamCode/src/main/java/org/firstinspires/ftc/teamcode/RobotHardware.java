@@ -67,7 +67,7 @@ public class RobotHardware  {
     /**
      * Normal speed for movement commands.
      */
-    public static final double MOTOR_SPEED_FACTOR_NORMAL = 0.75;
+    public static final double MOTOR_SPEED_FACTOR_NORMAL = 0.9;
     /**
      * "Sprint" speed for movement commands.
      */
@@ -107,9 +107,11 @@ public class RobotHardware  {
      */
     // NOTE: These were changed to be modifiable to allow the init() method to adjust them according
     // to the motor direction set for the motors connected to the same motor ports as the deadwheel
-    int DEADWHEEL_LEFT_DIRECTION = -1; // Allows for adjustment of + direction of left encoder - should be installed front to back
+    int DEADWHEEL_LEFT_DIRECTION = 1; // Allows for adjustment of + direction of left encoder - should be installed front to back
     int DEADWHEEL_RIGHT_DIRECTION = -1; // Allows for adjustment of + direction of right encoder - should be installed front to back
     int DEADWHEEL_AUX_DIRECTION = -1; // Allows for adjustment of + direction of aux encoder - should be installed left to right  - should be installed left to right
+    // // Account for corresponding change in encoder evaluation in deadwheel connected to same motor port
+
     // The following values were last calibrated 2024-12-23
     static final double DEADWHEEL_MM_PER_TICK = 0.07486; // MM per encoder tick (initially calculated 48MM diameter wheel @ 2000 ticks per revolution)
     static final double DEADWHEEL_FORWARD_OFFSET = -106.0; //forward offset (length B) of aux deadwheel from robot center of rotation in MM (negative if behind)
@@ -303,9 +305,6 @@ public class RobotHardware  {
         leftDeadwheelEncoder = myOpMode.hardwareMap.get(DcMotorEx.class, "encoder_left");
         auxDeadwheelEncoder = myOpMode.hardwareMap.get(DcMotorEx.class, "encoder_aux");
 
-        leftDeadwheelEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightDeadwheelEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        auxDeadwheelEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Reset the encoder values
         rightDeadwheelEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -317,34 +316,38 @@ public class RobotHardware  {
 
         // Define launcher hardware instance variables
         //
-         // se the same hardware mapping as the auxiliary odometry encoder
-         // Use the same hardware mapping as the left odometry encoder
+        // Define launcher hardware instance variables
+        // NOTE: The sizzleMotor, rightLauncherMotor, and steakMotor use Use the same hardware
+        // mappings as the auxiliary odometry encoder, right odometry encoder, and left odometry,
+        // respectively.
         sizzleMotor =  myOpMode.hardwareMap.get(DcMotorEx.class, "encoder_aux"); // Port 0
         rightLauncherMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "encoder_right"); // Port 1
         leftLauncherMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "left_launcher_motor"); //Port 2
         steakMotor =  myOpMode.hardwareMap.get(DcMotorEx.class, "encoder_left"); // Port 3
 
-
-
-
-        // Initialize settings for launcher and kebob motor
-
-
+        // Initialize settings for launcher and kebob motors
         sizzleMotor.setDirection(DcMotorEx.Direction.FORWARD);
         sizzleMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         sizzleMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-
-
         steakMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        DEADWHEEL_LEFT_DIRECTION *= -1; // Account for corresponding direction change in encoder deadwheel connected to same motor port
         steakMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         steakMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        // Reset the encoder count to zero and make sure the motor is stopped
-        // NOTE: the viper slide should be fully retracted before "Start" is pressed
-        //launcherMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+
+        leftLauncherMotor.setDirection(DcMotorEx.Direction.FORWARD);
+        leftLauncherMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        leftLauncherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+
+        rightLauncherMotor.setDirection(DcMotorEx.Direction.FORWARD);
+        rightLauncherMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        rightLauncherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+
+        // Make sure all the motors are stopped
+        sizzleMotor.setPower(0.0);
+        steakMotor.setPower(0.0);
         leftLauncherMotor.setPower(0.0);
         rightLauncherMotor.setPower(0.0);
-
         // Set the run mode to RUN_WITHOUT_ENCODER
         leftLauncherMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         rightLauncherMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
@@ -352,9 +355,9 @@ public class RobotHardware  {
 
         //Change directions for shooter motors
         leftLauncherMotor.setDirection(DcMotorEx.Direction.FORWARD);
-        leftLauncherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        leftLauncherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         rightLauncherMotor.setDirection(DcMotorEx.Direction.FORWARD);
-        rightLauncherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        rightLauncherMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
 
 

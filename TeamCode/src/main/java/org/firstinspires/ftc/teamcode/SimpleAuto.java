@@ -92,6 +92,7 @@ public class SimpleAuto extends LinearOpMode {
             //turnCustom test.
             robot.turnCustom(Math.PI/2, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
+            robot.forward(450, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL + 0.120);
             // Make sure robot stops (teleop initialization default) before OpMode dies
             robot.stop();
 

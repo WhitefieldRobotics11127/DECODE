@@ -91,38 +91,53 @@ public class BlueWallAuto extends LinearOpMode {
 
 
         // Wait for the game to start (driver presses START)
-        waitForStart();
+
+
 
         // Reset the runtime timer
-        runtime.reset();
+        //Goes forward
+        robot.forward(150, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+        //turns toward launch line
+        robot.turn(-Math.PI/2, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+        //goes inside launch line
+        robot.forward(200, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
         //shoot Motor On
-        robot.shootOn(0.78);
+        robot.shootOn(0.70);
         //turn toward Ramp
-        robot.turn(15*Math.PI/24,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+        robot.turnCustom(15*Math.PI/24,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
         //waits for 1st rev
-        sleep(800);
+        sleep(1600);
         //shoots first ball
-        robot.reverseSizzleSteak(0.23);
+        robot.forwardSizzleSteak(0.65);
+
         sleep(400);
         //waits for 2nd rev
         robot.sizzleSteakOff();
 
-        sleep(750);
+        sleep(1500);
 
-                //shoots 2nd
-        robot.reverseSizzleSteak(0.21);
+        //shoots 2nd
+        robot.forwardSizzleSteak(0.65);
 
         sleep(2500);
-
 
         robot.sizzleSteakOff();
 
         robot.shootOff();
 
-        robot.turn(-Math.PI/6,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+        robot.turn(-15*Math.PI/24,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-        robot.forward(250, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+        robot.forward(350, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
+        robot.forwardSizzleSteak(0.65);
+        
+        robot.forward(500, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+        robot.sizzleSteakOff();
+
+        robot.forward(350, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+        robot.forwardSizzleSteak(.65);
 
 
 

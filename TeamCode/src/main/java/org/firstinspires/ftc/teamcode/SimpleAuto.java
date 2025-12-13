@@ -89,10 +89,25 @@ public class SimpleAuto extends LinearOpMode {
             // Reset the runtime timer
             runtime.reset();
 
-            //turnCustom test.
-            robot.turnCustom(Math.PI/2, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+            //orbit test
 
-            robot.forward(450, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL + 0.120);
+
+                robot.shootOn(15);
+                //waits for 1st rev
+                sleep(1250);
+                //shoots first ball
+                robot.forwardSizzleSteak(0.9);
+
+                sleep(2100);
+
+                robot.sizzleSteakOff();
+
+
+                robot.shootOff();
+
+
+
+
             // Make sure robot stops (teleop initialization default) before OpMode dies
             robot.stop();
 

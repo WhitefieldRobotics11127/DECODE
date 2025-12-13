@@ -61,7 +61,12 @@ public class TeleopOpMode extends OpMode
     // Flag to indicate that the arm extension motor is in a RUN_TO_POSITION operation. This allows
     // a single button press to extend/retract the arm to a specific position without tying up the
     // thread in the loop() function waiting for the arm to reach the desired position.
-    boolean isFar = false;
+
+    int lastLeftPos = 0;
+    int lastRightPos = 0;
+    ElapsedTime launcherTimer = new ElapsedTime();
+
+    double shootDist =  .68;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -100,6 +105,7 @@ public class TeleopOpMode extends OpMode
         telemetry.addData("Speed Factor", speedFactorNames.get(speedFactor));
 
 
+
     }
 
     /*
@@ -107,6 +113,7 @@ public class TeleopOpMode extends OpMode
      */
     @Override
     public void loop() {
+
 
         // ***** Handle movement control from Gamepad1 *****
 
@@ -160,6 +167,11 @@ public class TeleopOpMode extends OpMode
                 double lateral = -gamepad1.left_stick_x;  // pushing stick left gives negative value
                 double yaw = -gamepad1.right_stick_x;  // pushing stick left gives negative value
                 robot.move(axial, lateral, yaw, speedFactor);
+
+
+
+
+
             }
         }
 
@@ -175,27 +187,30 @@ public class TeleopOpMode extends OpMode
             robot.reverseSizzleSteak(0.125);
         }
         if (gamepad2.right_bumper)
-            isFar = true;
+            shootDist = .68;
         if (gamepad2.left_bumper)
-            isFar = false;
+            shootDist = .80;
 
         if (gamepad2.a)
-            robot.shootOn(.68);
+            robot.shootOn(15);
         if (gamepad2.b)
             robot.shootOff();
 
         if (gamepad2.xWasPressed())
-            robot.forwardSizzleSteak(.75);
+            robot.forwardSizzleSteak(.8);
         if (gamepad2.xWasReleased())
             robot.sizzleSteakOff();
         if (gamepad2.yWasPressed())
-            robot.reverseSizzleSteak(.75);
+            robot.reverseSizzleSteak(.8);
         if (gamepad2.yWasReleased())
             robot.sizzleSteakOff();
         if (gamepad2.left_trigger >= 0.5)
             robot.reverseLauncher();
 
+
     }
+
+
 
 
 

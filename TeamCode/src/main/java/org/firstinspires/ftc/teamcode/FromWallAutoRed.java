@@ -31,7 +31,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.robot.Robot;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -62,9 +61,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="From Wall Auto - Blue", group="Auto")
+@Autonomous(name="From Wall Auto - Red", group="Auto")
 //@Disabled
-public class FromWallAuto2 extends LinearOpMode {
+public class FromWallAutoRed extends LinearOpMode {
 
 
 
@@ -94,61 +93,51 @@ public class FromWallAuto2 extends LinearOpMode {
         runtime.reset();
 
         //Checks which April Tag is in play
-        //move off wall barely
-        robot.forward(-1650, RobotHardware.MOTOR_SPEED_FACTOR_AUTONOMOUS);
-        //call shoot two -- 1st shot from goal
-        shootTwo();
+                //move off wall barely
+                robot.forward(-1350, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                //shoot Motor On
+                robot.shootOn(.66);
+                //waits for 1st rev
+                sleep(1250);
+                //shoots first ball
+                robot.forwardSizzleSteak(0.7);
 
+                sleep(400);
+                //waits for 2nd rev
+                robot.sizzleSteakOff();
 
-        robot.turn(Math.PI / 3, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                sleep(750);
 
-        robot.forwardSizzleSteak(0.7);
+                //shoots 2nd
+                robot.forwardSizzleSteak(0.7);
 
-        robot.forward(700, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                sleep(3000);
 
-        robot.sizzleSteakOff();
+                robot.sizzleSteakOff();
 
-        robot.forward(-700, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        robot.turn(-Math.PI / 3, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        shootTwo();
-
-        robot.turn(Math.PI / 3, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        robot.strafe(600, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        robot.forwardSizzleSteak(.7);
-
-        robot.forward(700, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        robot.sizzleSteakOff();
-
-        robot.forward(-700, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        robot.turn(-Math.PI / 3, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        shootTwo();
-
-        robot.strafe(600, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-
-        robot.strafe(600, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+                robot.shootOff();
 
 
 
+                robot.turnCustom(-5*Math.PI/18, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+                robot.forwardSizzleSteak(0.7);
+
+                robot.forward(400, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+                robot.sizzleSteakOff();
+
+                robot.forward(-400, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+                robot.turnCustom(5*Math.PI/18, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+                robot.shootOn(.66);
+
+                sleep(1250);
+
+                robot.forwardSizzleSteak(.7);
 
 
-        // Make sure robot stops (teleop initialization default) before OpMode dies
-        robot.stop();
-    }
-
-    public void shootTwo() {
-        robot.shootOn(.66);
-        //waits for 1st rev
-        sleep(1250);
-        //shoots first ball
-        robot.forwardSizzleSteak(0.7);
 
         sleep(400);
         //waits for 2nd rev
@@ -159,19 +148,18 @@ public class FromWallAuto2 extends LinearOpMode {
         //shoots 2nd
         robot.forwardSizzleSteak(0.7);
 
-        sleep(1700);
+        sleep(3000);
 
         robot.sizzleSteakOff();
 
+                robot.strafe(-600, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-        robot.shootOff();
+
+
+        sleep(30000);
+
+        // Make sure robot stops (teleop initialization default) before OpMode dies
+        robot.stop();
+
     }
 }
-
-
-
-
-
-
-
-

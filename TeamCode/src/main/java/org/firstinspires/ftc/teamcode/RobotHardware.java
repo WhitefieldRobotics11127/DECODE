@@ -154,6 +154,19 @@ public class RobotHardware  {
     static final double YAW_CONTROLLER_KD = 0.0; // Derivative gain for yaw (turning) error
     static final double YAW_CONTROLLER_KI = 0.0; // Integral gain for yaw (turning) error
 
+    private double lastX = 0;
+    private double lastY = 0;
+    private double lastYaw = 0;
+
+    static final double X_KS = 0.06;    // forward static friction
+    static final double Y_KS = 0.06;    // strafe static friction
+    static final double YAW_KS = 0.05;  // turn static friction
+
+    private final ElapsedTime accelTimer = new ElapsedTime();
+
+    static final double MAX_X_ACCEL = 3.0;    // power per second
+    static final double MAX_Y_ACCEL = 3.0;
+    static final double MAX_YAW_ACCEL = 6.0;
 
 
     /*
@@ -197,6 +210,7 @@ public class RobotHardware  {
     private VisionPortal visionPortal; // Used to manage the camera input and activation of video processors.
     private WebcamName webcam1, webcam2; // For identifying webcam(s)
 
+
     // NOTE: Because we want the AprilTag processor to return field position, the precise "pose"
     // of the camera(s) on the robot has to be provided. However, the camera position is set through
     // parameters of the AprilTag processor and not connected directly to the camera, so we need a
@@ -229,8 +243,21 @@ public class RobotHardware  {
 
     // keep a reference to the calling opmode so that we have access to hardwareMap and other
     // properties and statuses from the running opmode.
+    //Launcher encoder tracking
+    private int lastLeftPos = 0;
+    private int lastRightPos = 0;
 
+    private VelocityPIDF leftLauncherPIDF;
+    private VelocityPIDF rightLauncherPIDF;
 
+    // Velocity tracking
+    private double leftLauncherRPM = 0.0;
+    private double rightLauncherRPM = 0.0;
+
+    // Motor constants
+    private static final double LAUNCHER_TICKS_PER_REV = 28.0;
+
+    private ElapsedTime launcherTimer = new ElapsedTime();
 
     private final OpMode myOpMode;
 
@@ -325,6 +352,18 @@ public class RobotHardware  {
         leftLauncherMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "left_launcher_motor"); //Port 2
         steakMotor =  myOpMode.hardwareMap.get(DcMotorEx.class, "encoder_left"); // Port 3
 
+        launcherTimer = new ElapsedTime();
+        launcherTimer.reset();
+
+        //Positions of left and right launchers
+        lastLeftPos = leftLauncherMotor.getCurrentPosition();
+        lastRightPos = rightLauncherMotor.getCurrentPosition();
+
+        //Create PIDF Controllers:
+        leftLauncherPIDF  = new VelocityPIDF(0.00025, 0.0, 0.00001, 0.05);
+        rightLauncherPIDF = new VelocityPIDF(0.00025, 0.0, 0.00001, 0.05);
+
+
         // Initialize settings for launcher and kebob motors
         sizzleMotor.setDirection(DcMotorEx.Direction.FORWARD);
         sizzleMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
@@ -348,6 +387,7 @@ public class RobotHardware  {
         steakMotor.setPower(0.0);
         leftLauncherMotor.setPower(0.0);
         rightLauncherMotor.setPower(0.0);
+
         // Set the run mode to RUN_WITHOUT_ENCODER
         leftLauncherMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         rightLauncherMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
@@ -398,6 +438,28 @@ public class RobotHardware  {
         rightBackDrive.setPower(rightBackPower * OMNI_CORRECTION_RIGHT_BACK);
     }
 
+    /**Fixes cap acceleration
+     *
+     * @param target
+     * @param current
+     * @param maxAccel
+     * @param dt
+     * @return
+     */
+
+    private double slew(double target, double current, double maxAccel, double dt) {
+        double delta = target - current;
+        double maxDelta = maxAccel * dt;
+        return current + Math.max(-maxDelta, Math.min(maxDelta, delta));
+    }
+
+    private double feedForward(double error, double kS) {
+        if (Math.abs(error) < 1e-3) return 0.0;
+        return Math.signum(error) * kS;
+    }
+
+
+
     /**
      * Drive robot according to robot-oriented axes of motion.
      * This method can be used by teleop OpModes directly to drive the robot, since the human on
@@ -431,7 +493,7 @@ public class RobotHardware  {
             rightBackPower /= max;
         }
 
-        // adjust normalized powers by the speed factor and set motor powers
+// Send to motors
         setMotorPowers(
                 leftFrontPower * speed,
                 rightFrontPower * speed,
@@ -487,11 +549,39 @@ public class RobotHardware  {
         int dr = lastRightEncoderPosition - oldRightCounter;
         int da = lastAuxEncoderPosition - oldAuxOdometryCounter;
 
+        /*This code may look confusing but the idea is that it accounts a lot
+          more for curving. Instead of just looking linearly, it checks if the
+          robot followed an arc.
+         */
+        double dtheta = DEADWHEEL_MM_PER_TICK * (dr - dl) / DEADWHEEL_TRACKWIDTH;
+
+        double dx;
+        double dy;
+        // Robot moved mostly straight
+        if (Math.abs(dtheta) < 1e-6) {
+            // Change in X is the just the average of the forward movement of the left and right deadwheels
+            dx = DEADWHEEL_MM_PER_TICK * (dl + dr) / 2.0;
+            dy = DEADWHEEL_MM_PER_TICK * da;
+
+        }
+        else // Robot followed an arc
+        {
+            //gets forward distance
+            double r = (DEADWHEEL_MM_PER_TICK * (dl + dr)) / (2.0 * dtheta);
+            //gets radius of arc
+            dx = r * Math.sin(dtheta);
+            dy = r * (1 - Math.cos(dtheta))
+                    + DEADWHEEL_MM_PER_TICK * da
+                    - DEADWHEEL_FORWARD_OFFSET * dtheta;
+        }
+
+        //OLD CODE IN CASE ANYTHING GOES CATASTROPHICLY WRONG.
+
         // Change in X is the just the average of the forward movement of the left and right deadwheels
-        double dx = DEADWHEEL_MM_PER_TICK * (dl + dr) / 2.0;
+        //double dx = DEADWHEEL_MM_PER_TICK * (dl + dr) / 2.0;
 
         // Linear approximation of the change in heading (dtheta)
-        double dtheta = DEADWHEEL_MM_PER_TICK * (dr - dl) / DEADWHEEL_TRACKWIDTH;
+        //double dtheta = DEADWHEEL_MM_PER_TICK * (dr - dl) / DEADWHEEL_TRACKWIDTH;
 
         // The linear approximation above becomes less accurate as (dr - dl) grows large. The
         // equations below provide a more accurate approximation that uses the law of cosines to
@@ -506,7 +596,7 @@ public class RobotHardware  {
 
         // The change in Y is the forward movement of the aux deadwheel minus and ticks in the
         // deadwheel from change in heading
-        double dy = DEADWHEEL_MM_PER_TICK * da - DEADWHEEL_FORWARD_OFFSET * dtheta;
+        //double dy = DEADWHEEL_MM_PER_TICK * da - DEADWHEEL_FORWARD_OFFSET * dtheta;
 
         // update the x, y, and heading odometry counters
         xOdometryCounter += dx;
@@ -568,6 +658,8 @@ public class RobotHardware  {
         return headingOdometryCounter;
     }
 
+
+
     /* ----- Mid-level motion methods for autonomous motion ----- */
 
     /**
@@ -603,12 +695,29 @@ public class RobotHardware  {
             if (xController.isWithinTolerance(xOdometryCounter))
                 break;
 
-            // Calculate the control output for each of the three controllers
-            double xPower = clip(xController.calculate(xOdometryCounter), -1.0, 1.0);
+            double xError = distance - xOdometryCounter;
+            double yError = -yOdometryCounter;
+            double yawError = -headingOdometryCounter;
 
-            double yPower = clip(yController.calculate(yOdometryCounter), -1.0, 1.0);
+            double xPower = xController.calculate(xOdometryCounter)
+                    + feedForward(xError, X_KS);
+
+            double yPower = yController.calculate(yOdometryCounter)
+                    + feedForward(yError, Y_KS);
+
+            double yawPower = yawController.calculate(headingOdometryCounter)
+                    + feedForward(yawError, YAW_KS);
+
+            xPower   = clip(xPower, -1.0, 1.0);
+            yPower   = clip(yPower, -1.0, 1.0);
+            yawPower = clip(yawPower, -1.0, 1.0);
+
+            // Calculate the control output for each of the three controllers
+            //double xPower = clip(xController.calculate(xOdometryCounter), -1.0, 1.0);
+
+            //double yPower = clip(yController.calculate(yOdometryCounter), -1.0, 1.0);
             //double yPower = 0.0;
-            double yawPower = clip(yawController.calculate(headingOdometryCounter), -1.0, 1.0);
+            //double yawPower = clip(yawController.calculate(headingOdometryCounter), -1.0, 1.0);
             //double yawPower = 0.0;
 
 
@@ -656,7 +765,232 @@ public class RobotHardware  {
             // Calculate the control output for each of the three controllers
             double xPower = clip(xController.calculate(xOdometryCounter), -1.0, 1.0);
             //double xPower = 0.0;
-            double yPower = clip(yController.calculate(xOdometryCounter), -1.0, 1.0);
+            double yPower = clip(yController.calculate(yOdometryCounter), -1.0, 1.0);
+            double yawPower = clip(yawController.calculate(headingOdometryCounter), -1.0, 1.0);
+            //double yawPower = 0.0;
+
+            // Move the robot based on the calculated powers
+            move(xPower, yPower, yawPower, speed);
+        }
+
+        // stop the robot
+        stop();
+    }
+
+    /**
+     * Performs both X and Y motion at the same time allowing the bot to move diagonally.
+     * @param dx
+     * @param dy
+     * @param speed
+     */
+
+    public void diag(double dx, double dy, double speed) {
+
+        // Proportional controllers for x, y, and yaw
+        PController xController = new PController(dx, X_POSITION_TOLERANCE, X_CONTROLLER_DEADBAND, X_CONTROLLER_KP);
+        PController yController = new PController(dy, Y_POSITION_TOLERANCE, Y_CONTROLLER_DEADBAND, Y_CONTROLLER_KP);
+        PController yawController = new PController(0.0, HEADING_TOLERANCE, YAW_CONTROLLER_DEADBAND, YAW_CONTROLLER_KP);
+
+        // Flag to determine if called from a Liner OpMode
+        boolean isLinearOpMode = myOpMode instanceof LinearOpMode;
+
+        // reset the odometry counters to zero
+        resetOdometryCounters();
+
+        // Loop until the robot has reached the desired position
+        // NOTE: opModeIsActive() calls idle() internally, so we don't need to call idle()
+        // in the loop
+        while (!isLinearOpMode || ((LinearOpMode) myOpMode).opModeIsActive()) {
+
+            // Update the odometry counters
+            updateOdometry();
+
+            // If we have reached the desired position, break out of the loop
+            if (xController.isWithinTolerance(xOdometryCounter))
+                if (yController.isWithinTolerance(yOdometryCounter))
+                    break;
+
+            // Calculate the control output for each of the three controllers
+            double xPower = clip(xController.calculate(xOdometryCounter), -1.0, 1.0);
+            //double xPower = 0.0;
+            double yPower = clip(yController.calculate(yOdometryCounter), -1.0, 1.0);
+            double yawPower = clip(yawController.calculate(headingOdometryCounter), -1.0, 1.0);
+            //double yawPower = 0.0;
+
+            // Move the robot based on the calculated powers
+            move(xPower, yPower, yawPower, speed);
+        }
+
+        // stop the robot
+        stop();
+    }
+
+    /**
+     * Perform X and Yaw motion at the same time, allowing the bot to travel at an arc.
+     * This method should be called from a LinerOpMode and implements its own loop to cover the
+     * robot's motion to the specified position.
+     * @param dx
+     * @param hYaw
+     * @param speed
+     */
+    public void orbitX(double dx, double hYaw, double speed) {
+
+
+        // Proportional controllers for x, y, and yaw
+        PController xController = new PController(dx, X_POSITION_TOLERANCE, X_CONTROLLER_DEADBAND, X_CONTROLLER_KP);
+        PController yController = new PController(0.0, Y_POSITION_TOLERANCE, Y_CONTROLLER_DEADBAND, Y_CONTROLLER_KP);
+
+        //Variables that account for error.
+        double xError;
+        double yawError;
+        double lastYawError = 0.0;
+
+        ElapsedTime timer = new ElapsedTime();
+        timer.reset();
+
+        // Flag to determine if called from a Liner OpMode
+        boolean isLinearOpMode = myOpMode instanceof LinearOpMode;
+
+
+
+
+
+        // reset the odometry counters to zero
+        resetOdometryCounters();
+
+        // Loop until the robot has reached the desired position
+        // NOTE: opModeIsActive() calls idle() internally, so we don't need to call idle()
+        // in the loop
+        while (!isLinearOpMode || ((LinearOpMode) myOpMode).opModeIsActive()) {
+
+            // Update the odometry counters
+            updateOdometry();
+
+            // Calculate how far we still need to move forward in X and rotate in heading
+            xError   = dx - xOdometryCounter;
+            yawError = hYaw - headingOdometryCounter;
+
+            // Time elapsed since the previous loop iteration (used for derivative control)
+            double dt = timer.seconds();
+            timer.reset();
+
+            // Check whether the robot is close enough to the target X position
+            boolean reachX = xController.isWithinTolerance(xOdometryCounter);
+
+            // Check whether the robot is close enough to the target heading
+            boolean reachYaw = Math.abs(yawError) < HEADING_TOLERANCE;
+
+            // If we have reached the desired position, break out of the loop
+
+            if (reachX && reachYaw)
+                break;
+
+            //Calculates the rate of change for the yawError ---
+            double yawRate = (yawError - lastYawError) / Math.max(dt, 1e-3);
+            lastYawError = yawError;
+
+            //Feed Forward Variables
+            // Feedforward term for X motion to overcome static friction and start movement
+            double xFF   = Math.signum(xError)   * 0.08;
+
+            // full power when far away, smoothly reduced as we approach the target heading
+            double yawFF = Math.signum(yawError) * 0.05 *
+                    Math.min(1.0, Math.abs(yawError) / (5 * HEADING_TOLERANCE));
+
+            // Compute yaw power using feedforward, proportional, and derivative terms (PD + FF)
+            double yawPower = yawFF + (YAW_CONTROLLER_KP * yawError) - (0.20  * yawRate);
+
+            // Enforce a minimum yaw power near the target to overcome static friction
+            if (Math.abs(yawError) < 3 * HEADING_TOLERANCE) {
+                yawPower = Math.copySign(
+                        Math.max(Math.abs(yawPower), 0.12),
+                        yawPower
+                );
+            }
+            // Strong braking mode near the target to quickly eliminate small residual error
+            if (Math.abs(yawError) < 2 * HEADING_TOLERANCE) {
+                yawPower = clip(
+                        yawError * (YAW_CONTROLLER_KP * 2.0),
+                        -0.35,
+                        0.35
+                );
+            }
+
+            // Dynamically limit maximum yaw power as we get closer to the target heading
+            double yawCap = Math.min(1.0,
+                    Math.abs(yawError) / (4 * HEADING_TOLERANCE) + 0.2);
+
+            // Applies yawPower
+            yawPower = clip(yawPower, -yawCap, yawCap);
+
+
+
+            // Calculate the control output for each of the three controllers
+            double xPower = clip(xFF + X_CONTROLLER_KP * xError, -1.0, 1.0);
+            //double xPower = 0.0;
+            double yPower = clip(yController.calculate(yOdometryCounter), -1.0, 1.0);
+            //double yawPower = 0.0;
+            yawPower = clip(yawPower, -1.0, 1.0);
+
+            //If we have reached our specified position then send 0.0
+            if (reachX)
+                xPower = 0.0;
+
+            // Move the robot based on the calculated powers
+            move(xPower, yPower, yawPower, speed);
+        }
+
+        // stop the robot
+        stop();
+
+
+    }
+
+    /**
+     * Perform Y and Yaw motion at the same time.
+     * This method should be called from a LinerOpMode and implements its own loop to cover the
+     * robot's motion to the specified position.
+     * @param dy
+     * @param dyaw
+     * @param speed
+     */
+    public void orbitY(double dy, double dyaw, double speed) {
+
+        // Proportional controllers for x, y, and yaw
+        PController xController = new PController(0.0, X_POSITION_TOLERANCE, X_CONTROLLER_DEADBAND, X_CONTROLLER_KP);
+        PController yController = new PController(dy, Y_POSITION_TOLERANCE, Y_CONTROLLER_DEADBAND, Y_CONTROLLER_KP);
+        PController yawController = new PController(dyaw, HEADING_TOLERANCE, YAW_CONTROLLER_DEADBAND, YAW_CONTROLLER_KP);
+
+        // Flag to determine if called from a Liner OpMode
+        boolean isLinearOpMode = myOpMode instanceof LinearOpMode;
+        boolean reachY = false;
+        boolean reachYaw = false;
+
+        // reset the odometry counters to zero
+        resetOdometryCounters();
+
+        // Loop until the robot has reached the desired position
+        // NOTE: opModeIsActive() calls idle() internally, so we don't need to call idle()
+        // in the loop
+        while (!isLinearOpMode || ((LinearOpMode) myOpMode).opModeIsActive()) {
+
+            // Update the odometry counters
+            updateOdometry();
+
+            // If we have reached the desired position, break out of the loop
+            if (yController.isWithinTolerance(yOdometryCounter))
+                reachY = true;
+
+            if (yawController.isWithinTolerance(headingOdometryCounter))
+                reachYaw = true;
+
+            if (reachY && reachY == reachYaw)
+                break;
+
+            // Calculate the control output for each of the three controllers
+            double xPower = clip(xController.calculate(xOdometryCounter), -1.0, 1.0);
+            //double xPower = 0.0;
+            double yPower = clip(yController.calculate(yOdometryCounter), -1.0, 1.0);
             double yawPower = clip(yawController.calculate(headingOdometryCounter), -1.0, 1.0);
             //double yawPower = 0.0;
 
@@ -763,12 +1097,41 @@ public class RobotHardware  {
     }
 
     /* ------ Shooter Methods ----- */
+    public void updateLaunchPos()
+    {
+        double dt = launcherTimer.seconds();
+        launcherTimer.reset();
 
-    public void shootOn(double power) {
+        if (dt <= 0) return;
 
-        //Set power of the motors
-        leftLauncherMotor.setPower(power);
-        rightLauncherMotor.setPower(power);
+        int leftPos  = leftLauncherMotor.getCurrentPosition();
+        int rightPos = rightLauncherMotor.getCurrentPosition();
+
+        double leftTicksPerSec =
+                (leftPos - lastLeftPos) / dt;
+        double rightTicksPerSec =
+                (rightPos - lastRightPos) / dt;
+
+        lastLeftPos  = leftPos;
+        lastRightPos = rightPos;
+
+        leftLauncherRPM  = (leftTicksPerSec  / LAUNCHER_TICKS_PER_REV) * 60.0;
+        rightLauncherRPM = (rightTicksPerSec / LAUNCHER_TICKS_PER_REV) * 60.0;
+
+
+    }
+    public void shootOn(double targetRPM) { //Changed this to use RPM instead of pure power to (hopefully) allow better shooting.
+
+        updateLaunchPos();
+
+        double dt = launcherTimer.seconds();
+
+        double leftPower = leftLauncherPIDF.updateVelocity(targetRPM, leftLauncherRPM, dt);
+
+        double rightPower = rightLauncherPIDF.updateVelocity(targetRPM, rightLauncherRPM, dt);
+
+        leftLauncherMotor.setPower(clip(leftPower, 0.0, 1.0));
+        rightLauncherMotor.setPower(clip(rightPower, 0.0, 1.0));
     }
     public void shootOff() {  // turns off the shooter
         leftLauncherMotor.setPower(0);
@@ -1245,7 +1608,7 @@ public class RobotHardware  {
  * if statements to remove the unnecessary calculations (for performance sake) made the code hard
  * to read.
  */
-    class PController {
+    public class PController {
 
         // properties to store values needed for repeated calculations
         private final double target; // target position initially provided
@@ -1269,15 +1632,18 @@ public class RobotHardware  {
         // Method to calculate the control output based on the current position
         public double calculate(double currentPosition) {
 
+
             // Calculate the error
             double error = target - currentPosition;
 
             // Check if the error is within the deadband range
             if (Math.abs(error) < deadband)
                 return 0.0;
-            else
+            else {
                 // Calculate the control output
                 return Kp * error;
+
+            }
         }
     }
 
@@ -1350,4 +1716,36 @@ public class RobotHardware  {
             }
         }
     }
+    //Tracks Flywheel PIDF manually
+    class VelocityPIDF {
+        private double kP, kI, kD, kF;
+
+        private double intergal = 0.0;
+        private double lastError = 0.0;
+        private double lastVelocity = 0.0;
+
+        public VelocityPIDF (double p, double i, double d, double f)
+        {
+            this.kP = p;
+            this.kI = i;
+            this.kD = d;
+            this.kF = f;
+
+        }
+
+        public double updateVelocity(double tarVel, double curVel, double dt)
+        {
+            double errorVel = tarVel - curVel;
+
+            intergal += errorVel * dt;
+            double derivative = (errorVel - lastError) / Math.max(dt, 1e-3);
+
+            lastError = errorVel;
+
+            return (kP * errorVel) + (kI * intergal) + (kD * derivative) + (kF * tarVel);
+
+        }
+
+    }
+
 }

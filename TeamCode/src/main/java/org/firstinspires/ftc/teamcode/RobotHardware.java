@@ -247,6 +247,8 @@ public class RobotHardware  {
     private int lastLeftPos = 0;
     private int lastRightPos = 0;
 
+    private double launcherDt = 0.0;
+
     private VelocityPIDF leftLauncherPIDF;
     private VelocityPIDF rightLauncherPIDF;
 
@@ -254,12 +256,16 @@ public class RobotHardware  {
     private double leftLauncherRPM = 0.0;
     private double rightLauncherRPM = 0.0;
 
+    private double[] shootDist = {11.7, 11.9, 14};
+
     // Motor constants
     private static final double LAUNCHER_TICKS_PER_REV = 28.0;
 
     private ElapsedTime launcherTimer = new ElapsedTime();
 
     private final OpMode myOpMode;
+
+
 
     /**
      * Constructor allows calling OpMode to pass a reference to itself.
@@ -1102,6 +1108,8 @@ public class RobotHardware  {
         double dt = launcherTimer.seconds();
         launcherTimer.reset();
 
+        launcherDt = dt;
+
         if (dt <= 0) return;
 
         int leftPos  = leftLauncherMotor.getCurrentPosition();
@@ -1124,11 +1132,9 @@ public class RobotHardware  {
 
         updateLaunchPos();
 
-        double dt = launcherTimer.seconds();
+        double leftPower = leftLauncherPIDF.updateVelocity(targetRPM, leftLauncherRPM, launcherDt);
 
-        double leftPower = leftLauncherPIDF.updateVelocity(targetRPM, leftLauncherRPM, dt);
-
-        double rightPower = rightLauncherPIDF.updateVelocity(targetRPM, rightLauncherRPM, dt);
+        double rightPower = rightLauncherPIDF.updateVelocity(targetRPM, rightLauncherRPM, launcherDt);
 
         leftLauncherMotor.setPower(clip(leftPower, 0.0, 1.0));
         rightLauncherMotor.setPower(clip(rightPower, 0.0, 1.0));
@@ -1163,14 +1169,12 @@ public class RobotHardware  {
 
     }
 
-    public void reverseLauncher() {
-        //Spin the wheel
-        leftLauncherMotor.setPower(-0.5);
-        //Wait for 1/2 a second
-        sleep(700);
-        //Stop spinning the wheel
-        leftLauncherMotor.setPower(0);
-    }
+    public void reverseLauncher(double power) {
+            leftLauncherMotor.setPower(-Math.abs(power));
+            rightLauncherMotor.setPower(-Math.abs(power));
+
+
+        }
 
     /* ------- Odometry Calculation ----- */
     public void strafeTest()

@@ -90,20 +90,25 @@ public class SimpleAuto extends LinearOpMode {
             runtime.reset();
 
             //orbit test
+            //call shoot two -- 2nd shot from 1st Launch Line
+            robot.shootOn(11.7);
+            //waits for 1st rev
+            sleep(1250);
+
+            robot.shootOff();
+
+            robot.shootOn(11.7);
+            //waits for 1st rev
+            sleep(1250);
+
+            robot.shootOff();
+            robot.shootOn(11.7);
+            //waits for 1st rev
+            sleep(1250);
+
+            robot.shootOff();
 
 
-                robot.shootOn(15);
-                //waits for 1st rev
-                sleep(1250);
-                //shoots first ball
-                robot.forwardSizzleSteak(0.9);
-
-                sleep(2100);
-
-                robot.sizzleSteakOff();
-
-
-                robot.shootOff();
 
 
 

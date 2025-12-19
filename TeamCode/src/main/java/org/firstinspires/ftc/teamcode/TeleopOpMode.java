@@ -132,6 +132,7 @@ public class TeleopOpMode extends OpMode
         } else if (gamepad1.y) {
             evanButton = speedFactor;
         }
+
         //else {
         //    System.out.println("Logan probably messed up the code.");
         //}
@@ -178,35 +179,25 @@ public class TeleopOpMode extends OpMode
         // ***** Kebob / Launcher from Gamepad2 *****
 
         //Controls for Player 2 - Shoot Person
-        if (gamepad2.dpad_up && !lastGamepad2.dpad_up)
-        {
-            robot.forwardSizzleSteak(0.125);
-        }
-        if (gamepad2.dpad_down && !lastGamepad2.dpad_down)
-        {
-            robot.reverseSizzleSteak(0.125);
-        }
-        if (gamepad2.right_bumper)
-            shootDist = .68;
-        if (gamepad2.left_bumper)
-            shootDist = .80;
 
         if (gamepad2.a)
-            robot.shootOn(15);
+            robot.shootOn(11.7);
         if (gamepad2.b)
             robot.shootOff();
 
         if (gamepad2.xWasPressed())
-            robot.forwardSizzleSteak(.8);
+            robot.forwardSizzleSteak(.7);
         if (gamepad2.xWasReleased())
             robot.sizzleSteakOff();
         if (gamepad2.yWasPressed())
-            robot.reverseSizzleSteak(.8);
+            robot.reverseSizzleSteak(.7);
         if (gamepad2.yWasReleased())
             robot.sizzleSteakOff();
-        if (gamepad2.left_trigger >= 0.5)
-            robot.reverseLauncher();
-
+        if (gamepad2.left_trigger >= 0.5) {
+            robot.reverseLauncher(.6);
+            if (gamepad2.left_trigger < 0.5)
+                robot.shootOff();
+        }
 
     }
 

@@ -144,18 +144,14 @@ public class FromWallAutoBlue extends LinearOpMode {
     }
 
     public void shootTwo() {
-        robot.shootOn(15);
-        //waits for 1st rev
-        sleep(1250);
-        //shoots two artifacts
-        robot.forwardSizzleSteak(0.7);
+        ElapsedTime shootTimer = new ElapsedTime();
+        shootTimer.reset();
 
-        sleep(2100);
-
-        robot.sizzleSteakOff();
-
-
-        robot.shootOff();
+        while (opModeIsActive() && shootTimer.milliseconds() < 1250) {
+            robot.shootOn(15);
+            idle();
+            robot.shootOff();
+        }
     }
 }
 

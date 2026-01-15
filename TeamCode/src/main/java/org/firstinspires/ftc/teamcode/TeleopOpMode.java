@@ -49,6 +49,23 @@ public class TeleopOpMode extends OpMode
     // Evan Button sets the d-pad speed to a faster setting if need be.
     double speedFactor = RobotHardware.MOTOR_SPEED_FACTOR_NORMAL;
     double evanButton = RobotHardware.MOTOR_SPEED_FACTOR_PRECISE;
+
+    int randNum = (int)(Math.random() * 100) + 1;
+    String[] quotes =
+            {
+                "Wire Management, Will", "Shooting 3\'s", "Life is Short, Cookie is Good, We are Robotics",
+                "WE ARE ROBOTICS", "Chick-fil-a run?", "Build Team is just a bunch of people hitting things with hammers",
+                "Dont hit the gate", "Suddenly getting the flu today", "Will will be with us in spirit", "Get up and walk",
+                "Dont stop moving.", "Monstared", "fix it evan",
+                "TRAPP!", "Code Issue", "Build Issue", "fly high fry guy", "literal movie",
+                "one jellybean...", "Break the 3 - 2!", "0.00006103515% Chance of failure", "FTC please like us!!",
+                "And 1!", "All eyes are watching you, no pressure.", "Logan probably wrote this code",
+                "lock in.", "DONT OVERSHOOT.", "They killed PlungerBot", "go for it", "=)", "WILL KINNNG", "100% Brain Power", "Simple. Dont Miss", ""
+            };
+
+    String famousLastWords = quotes[(int)(Math.random() * quotes.length)]; //Selects a random quote to display on telemetry
+
+
     // A hashmap to store the speed factor names for display in telemetry data on the driver station.
     static final private HashMap<Double, String> speedFactorNames;
     static {
@@ -78,6 +95,8 @@ public class TeleopOpMode extends OpMode
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Hardware Initialized");
+        telemetry.addLine();
+        telemetry.addLine("lock in.");
     }
 
     /*
@@ -113,6 +132,8 @@ public class TeleopOpMode extends OpMode
      */
     @Override
     public void loop() {
+
+
 
 
         // ***** Handle movement control from Gamepad1 *****
@@ -154,12 +175,12 @@ public class TeleopOpMode extends OpMode
 
         } else {
             // ignore right stick inputs if bumpers are pressed
-            if (gamepad1.right_bumper || gamepad1.left_bumper) {
+            if (gamepad2.right_bumper || gamepad2.left_bumper) {
                 //rotates the bot based off of set speed.
-                if (gamepad1.right_bumper)
-                    robot.move(0, 0, -1, evanButton * 0.5);
-                else if (gamepad1.left_bumper)
-                    robot.move(0, 0, 1, evanButton * 0.5);
+                if (gamepad2.right_bumper)
+                    robot.move(0, 0, -2, evanButton * 0.5);
+                else if (gamepad2.left_bumper)
+                    robot.move(0, 0, 2, evanButton * 0.5);
             } else {
                 // Use left joystick to go forward & strafe, and right joystick to rotate.
                 // NOTE: the robot.move() function takes values in FTC coordinate system values, where
@@ -180,24 +201,36 @@ public class TeleopOpMode extends OpMode
 
         //Controls for Player 2 - Shoot Person
 
-        if (gamepad2.a)
-            robot.shootOn(11.7);
-        if (gamepad2.b)
-            robot.shootOff();
-
-        if (gamepad2.xWasPressed())
-            robot.forwardSizzleSteak(.7);
-        if (gamepad2.xWasReleased())
-            robot.sizzleSteakOff();
-        if (gamepad2.yWasPressed())
-            robot.reverseSizzleSteak(.7);
-        if (gamepad2.yWasReleased())
-            robot.sizzleSteakOff();
-        if (gamepad2.left_trigger >= 0.5) {
-            robot.reverseLauncher(.6);
-            if (gamepad2.left_trigger < 0.5)
+            if (!lastGamepad2.dpad_up && gamepad2.dpad_up )
+                robot.switchToIndex(0);
+            else if (!lastGamepad2.dpad_down && gamepad2.dpad_down)
+                robot.switchToIndex(1);
+            else if (gamepad2.a)
+                robot.shootOn(robot.currLaunchVel);
+            else if (gamepad2.b)
                 robot.shootOff();
-        }
+
+            else if (gamepad2.xWasPressed())
+                robot.forwardSizzleSteak(.7);
+            else if (gamepad2.xWasReleased())
+                robot.sizzleSteakOff();
+            else if (gamepad2.yWasPressed())
+                robot.reverseSizzleSteak(.7);
+            else if (gamepad2.yWasReleased())
+                robot.sizzleSteakOff();
+            else if (gamepad2.left_trigger >= 0.5) {
+                robot.reverseLauncher(.6);
+            }
+        telemetry.addLine("-----------Player 1-----------");
+        telemetry.addData("Speed Factor", speedFactorNames.get(speedFactor));
+        telemetry.addData("Status", "Running (%s)", runtime.toString());
+        telemetry.addLine("-----------Player 2-----------");
+        telemetry.addData("Launch Dist: ", robot.getShootDist());
+        telemetry.addData("Index (I): ", robot.getIndex());
+        telemetry.addLine("-----------Extra-----------");
+        telemetry.addLine(famousLastWords);
+        telemetry.addData("Random Number of the Day: ", randNum);
+        telemetry.update();
 
     }
 

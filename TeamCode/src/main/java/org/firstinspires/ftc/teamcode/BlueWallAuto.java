@@ -69,6 +69,7 @@ public class BlueWallAuto extends LinearOpMode {
 
 
 
+
     // Create a RobotHardware object to be used to access robot hardware.
     // Prefix any hardware functions with "robot." to access this class.
     RobotHardware robot = new RobotHardware(this);
@@ -76,8 +77,13 @@ public class BlueWallAuto extends LinearOpMode {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
 
+    private final double NORMAL = RobotHardware.MOTOR_SPEED_FACTOR_NORMAL;
+    private final double FAST = RobotHardware.MOTOR_SPEED_FACTOR_DAVIS;
 
-    boolean isFar = false;
+    int moveDist = 550;
+    boolean lockIn = false;
+    int sleepT = 1000;
+    int wallDir = 1; //blue is negative; red is postive
     //@Override
     public void runOpMode() {
 
@@ -89,60 +95,134 @@ public class BlueWallAuto extends LinearOpMode {
 
 
 
-
         // Wait for the game to start (driver presses START)
-
-
+        waitForStart();
 
         // Reset the runtime timer
-        //Goes forward
-        robot.forward(150, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //turns toward launch line
-        robot.turn(-Math.PI/2, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //goes inside launch line
-        robot.forward(200, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //shoot Motor On
-        robot.shootOn(0.70);
-        //turn toward Ramp
-        robot.turnCustom(15*Math.PI/24,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //waits for 1st rev
-        sleep(1600);
-        //shoots first ball
-        robot.forwardSizzleSteak(0.65);
+        runtime.reset();
 
-        sleep(400);
-        //waits for 2nd rev
-        robot.sizzleSteakOff();
 
-        sleep(1500);
 
-        //shoots 2nd
-        robot.forwardSizzleSteak(0.65);
+        while (opModeIsActive())
+        {
+            //goes to farthest launch dist
+            robot.switchToIndex(1);
 
-        sleep(2500);
+            if (opModeIsActive())
+                robot.forward(100, NORMAL);
+            //turns towards red goal
+            if (opModeIsActive())
+                robot.turnCustom(wallDir*(Math.PI/7), NORMAL);
 
-        robot.sizzleSteakOff();
+            //lets artifacts rest than shoots three
+            sleep(sleepT);
+            if (opModeIsActive())
+                shootThree();
 
-        robot.shootOff();
+            //Run Wall Strat once
+            wallStrat();
+            //change move distance
+            moveDist = 1000;
+            //Run wall strat again
+            wallStrat();
+            //
+            moveDist = 1500;
 
-        robot.turn(-15*Math.PI/24,RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+            lockIn = true;
+            //Run wall strat again
+            wallStrat();
 
-        robot.forward(350, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-        robot.forwardSizzleSteak(0.65);
-        
-        robot.forward(500, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-        robot.sizzleSteakOff();
 
-        robot.forward(350, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-        robot.forwardSizzleSteak(.65);
+        }
 
 
 
         // Make sure robot stops (teleop initialization default) before OpMode dies
         robot.stop();
+
+    }
+
+    public void wallStrat() {
+
+        //goes to the first
+        if (opModeIsActive())
+            robot.forward(moveDist, NORMAL);
+
+        //turns towards motif
+        if (opModeIsActive())
+            robot.turnCustom(Math.PI/2.8, NORMAL);
+
+        //activates intake
+        if (opModeIsActive())
+            robot.forwardSizzleSteak(.87);
+
+        //goes into first motif
+        if (opModeIsActive())
+            robot.forward(600, NORMAL);  // same as line
+
+        //waits for around half a second
+        sleep(sleepT - 400);
+
+
+        //Opposite of prev code
+        if (opModeIsActive())
+            robot.forward(-600, NORMAL);
+        if (opModeIsActive())
+            robot.sizzleSteakOff();
+
+        if (!lockIn) {
+            if (opModeIsActive())
+                robot.strafe(moveDist + 100, NORMAL);
+            sleep(400);
+            //back into launch zone
+            if (opModeIsActive())
+                robot.forward(-250, NORMAL);
+            if (opModeIsActive())
+                robot.turnCustom(wallDir*-Math.PI / 3, NORMAL);
+            sleep(sleepT);
+            if (opModeIsActive())
+            if (opModeIsActive())
+                shootThree();
+        }
+        else //LOCK IN
+        {
+            if (opModeIsActive())
+                robot.forward(-300, NORMAL);
+            if (opModeIsActive())
+                robot.turn(wallDir*Math.PI / 6, NORMAL);
+            sleep(sleepT);
+            if (opModeIsActive())
+                shootThree();
+        }
+
+
+
+
+
+
+
+
+
+    }
+    public void shootThree() {
+        ElapsedTime shootTimer = new ElapsedTime();
+        shootTimer.reset();
+
+        while (opModeIsActive() && shootTimer.milliseconds() < 1550) {
+            robot.shootOn(robot.currLaunchVel);
+            idle();
+        }
+
+        robot.forwardSizzleSteak(0.9);
+        sleep(3000);
+        robot.sizzleSteakOff();
+
+
+
+        robot.shootOff();
 
     }
 }

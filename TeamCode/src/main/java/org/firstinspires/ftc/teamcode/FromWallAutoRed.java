@@ -92,74 +92,85 @@ public class FromWallAutoRed extends LinearOpMode {
         // Reset the runtime timer
         runtime.reset();
 
-        //Checks which April Tag is in play
-                //move off wall barely
-                robot.forward(-1350, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-                //shoot Motor On
-                robot.shootOn(.66);
-                //waits for 1st rev
-                sleep(1250);
-                //shoots first ball
-                robot.forwardSizzleSteak(0.7);
 
-                sleep(400);
-                //waits for 2nd rev
-                robot.sizzleSteakOff();
+        //move off wall barely
+        robot.reverseLauncher(.5);
+        robot.forward(-1400, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-                sleep(750);
+        sleep(600);
+        //call shoot two -- 1st shot from goal
 
-                //shoots 2nd
-                robot.forwardSizzleSteak(0.7);
+        shootTwo();
 
-                sleep(3000);
+        //turns towards first motif
+        robot.turnCustom(-Math.PI / 4.5, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+        //runs sizzle steak
+        robot.forwardSizzleSteak(0.9);
+        //runs into motif
+        robot.forward(1200, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-                robot.sizzleSteakOff();
-
-                robot.shootOff();
-
-
-
-                robot.turnCustom(-5*Math.PI/18, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-                robot.forwardSizzleSteak(0.7);
-
-                robot.forward(400, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-                robot.sizzleSteakOff();
-
-                robot.forward(-400, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-                robot.turnCustom(5*Math.PI/18, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-                robot.shootOn(.66);
-
-                sleep(1250);
-
-                robot.forwardSizzleSteak(.7);
-
-
-
-        sleep(400);
-        //waits for 2nd rev
+        //sleep -_- <--- Willy P.
+        sleep(600);
+        //turns off sizzle steak.
         robot.sizzleSteakOff();
+        //backs off
+        robot.reverseLauncher(.5);
+        robot.forward(-1200, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+        //turns toward ramp
+        robot.turnCustom(Math.PI / 4.5, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+        //call shoot two -- 2nd shot from 1st Launch Line
+        sleep(1000);
+        shootTwo();
+        //
+        robot.turnCustom(-Math.PI / 4.5, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-        sleep(750);
+        robot.strafe(-530, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-        //shoots 2nd
-        robot.forwardSizzleSteak(0.7);
+        robot.forwardSizzleSteak(.9);
 
-        sleep(3000);
+        robot.forward(1200, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
         robot.sizzleSteakOff();
+        //backs off of the Line 2
+        robot.reverseLauncher(.5);
+        robot.forward(-1200, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-                robot.strafe(-600, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+        //strafes back toward launch line.
+        robot.strafe(630, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+
+        robot.turnCustom(Math.PI / 4.5, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+        //call shoot two -- 3rd shot from Front Launch Line
+        sleep(1000);
+        shootTwo();
+
+
+        //Performs leave
+        robot.strafe(-600, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
 
 
-        sleep(30000);
+
 
         // Make sure robot stops (teleop initialization default) before OpMode dies
         robot.stop();
+    }
+
+    public void shootTwo() {
+        ElapsedTime shootTimer = new ElapsedTime();
+        shootTimer.reset();
+
+        while (opModeIsActive() && shootTimer.milliseconds() < 1250) {
+            robot.shootOn(12.5);
+            idle();
+        }
+
+        robot.forwardSizzleSteak(0.8);
+        sleep(1500);
+        robot.sizzleSteakOff();
+
+
+
+        robot.shootOff();
 
     }
 }

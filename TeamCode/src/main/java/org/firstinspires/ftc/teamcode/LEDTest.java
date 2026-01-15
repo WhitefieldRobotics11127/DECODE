@@ -61,125 +61,40 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="From Wall Auto - Blue", group="Auto")
+@Autonomous(name="LED Test", group="Linear OpMode")
 //@Disabled
-public class FromWallAutoBlue extends LinearOpMode {
+public class LEDTest extends LinearOpMode {
 
 
+        // Create a RobotHardware object to be used to access robot hardware.
+        // Prefix any hardware functions with "robot." to access this class.
+        RobotHardware robot = new RobotHardware(this);
 
-    // Create a RobotHardware object to be used to access robot hardware.
-    // Prefix any hardware functions with "robot." to access this class.
-    RobotHardware robot = new RobotHardware(this);
-
-    // Declare OpMode members.
-    private ElapsedTime runtime = new ElapsedTime();
-
-
-    boolean isFar = false;
-    //@Override
-    public void runOpMode() {
-
-        // initialize all the hardware, using the hardware class. See how clean and simple this is?
-        robot.init();
-
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
+        // Declare OpMode members.
+        private ElapsedTime runtime = new ElapsedTime();
 
 
-        // Wait for the game to start (driver presses START)
-        waitForStart();
+        @Override
+        public void runOpMode() {
 
-        // Reset the runtime timer
-        runtime.reset();
+            // initialize all the hardware, using the hardware class. See how clean and simple this is?
+            robot.init();
 
+            telemetry.addData("Status", "Initialized");
+            telemetry.update();
 
-        //move off wall barely
-        robot.reverseLauncher(.5);
-        robot.forward(-1350, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+            // Wait for the game to start (driver presses START)
+            waitForStart();
 
-        sleep(600);
-        //call shoot two -- 1st shot from goal
-
-        shootTwo();
-
-        //turns towards first motif
-        robot.turnCustom(Math.PI / 4.5, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //runs sizzle steak
-        robot.forwardSizzleSteak(.8);
-        //runs into motif
-        robot.strafe(200, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        robot.forward(1000, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        //sleep -_- <--- Willy P.
-        sleep(800);
-        //turns off sizzle steak.
-        robot.sizzleSteakOff();
-        //backs off
-        robot.reverseLauncher(.5);
-        robot.forward(-850, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //turns toward ramp
-        robot.turnCustom(-Math.PI / 4.5, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //call shoot two -- 2nd shot from 1st Launch Line
-        sleep(800);
-        shootTwo();
-        //
-        robot.turnCustom(Math.PI / 4.5, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        robot.strafe(700, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        robot.forwardSizzleSteak(.6);
-
-        robot.forward(1000, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL - .1);
-
-        robot.sizzleSteakOff();
-        //backs off of the Line 2
-        robot.reverseLauncher(.5);
-        robot.forward(-1400, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        //strafes back toward launch line.
-        robot.strafe(-530, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        robot.turnCustom(-Math.PI / 4.5, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //call shoot two -- 3rd shot from Front Launch Line
-        sleep(800);
-        shootTwo();
+            // Reset the runtime timer
+            runtime.reset();
 
 
-        //Performs leave
-        robot.strafe(600, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+            robot.setShoot1LED(true);
+            robot.setShoot2LED(true);
+            robot.setShoot3LED(true);
+            // Make sure robot stops (teleop initialization default) before OpMode dies
+            robot.stop();
 
-
-
-
-
-        // Make sure robot stops (teleop initialization default) before OpMode dies
-        robot.stop();
-    }
-
-    public void shootTwo() {
-        ElapsedTime shootTimer = new ElapsedTime();
-        shootTimer.reset();
-
-        while (opModeIsActive() && shootTimer.milliseconds() < 1550) {
-            robot.shootOn(12.5);
-            idle();
         }
-
-        robot.forwardSizzleSteak(0.8);
-        sleep(2000);
-        robot.sizzleSteakOff();
-
-
-
-        robot.shootOff();
-
     }
-}
-
-
-
-
-
-
-
-

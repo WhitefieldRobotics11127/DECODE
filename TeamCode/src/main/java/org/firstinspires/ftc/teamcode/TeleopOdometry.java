@@ -147,7 +147,7 @@ public class TeleopOdometry extends OpMode
             else if(gamepad1.dpad_right && !lastGamepad1.dpad_right)
                 robot.move(0, -1, 0, RobotHardware.MOTOR_SPEED_FACTOR_PRECISE);
             else if(gamepad1.left_bumper && !lastGamepad1.left_bumper)
-                robot.strafeTest();
+                ;
             else if(gamepad1.right_bumper && !lastGamepad1.right_bumper)
                 robot.move(0, 0, -1, RobotHardware.MOTOR_SPEED_FACTOR_PRECISE);
         }

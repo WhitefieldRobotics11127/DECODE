@@ -40,6 +40,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.LED;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -54,6 +55,8 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+
 
 import java.util.ArrayList;
 
@@ -209,7 +212,9 @@ public class RobotHardware  {
     private DcMotorEx leftLauncherMotor, rightLauncherMotor; // Motors for the launcher motor
     private VisionPortal visionPortal; // Used to manage the camera input and activation of video processors.
     private WebcamName webcam1, webcam2; // For identifying webcam(s)
-
+    private LED shoot1LED;
+    private LED shoot2LED;
+    private LED shoot3LED;
 
     // NOTE: Because we want the AprilTag processor to return field position, the precise "pose"
     // of the camera(s) on the robot has to be provided. However, the camera position is set through
@@ -256,7 +261,14 @@ public class RobotHardware  {
     private double leftLauncherRPM = 0.0;
     private double rightLauncherRPM = 0.0;
 
-    private double[] shootDist = {11.7, 11.9, 14};
+    //shootDist switcher
+    private double[] shootDist = new double[3];
+
+    int i = 0;
+
+    double currLaunchVel;
+
+
 
     // Motor constants
     private static final double LAUNCHER_TICKS_PER_REV = 28.0;
@@ -361,6 +373,13 @@ public class RobotHardware  {
         launcherTimer = new ElapsedTime();
         launcherTimer.reset();
 
+
+        //Define LED hardware instance variables
+        shoot1LED = myOpMode.hardwareMap.get(LED.class, "shoot1");
+        shoot2LED = myOpMode.hardwareMap.get(LED.class, "shoot2");
+        shoot3LED = myOpMode.hardwareMap.get(LED.class, "shoot3");
+
+
         //Positions of left and right launchers
         lastLeftPos = leftLauncherMotor.getCurrentPosition();
         lastRightPos = rightLauncherMotor.getCurrentPosition();
@@ -368,6 +387,12 @@ public class RobotHardware  {
         //Create PIDF Controllers:
         leftLauncherPIDF  = new VelocityPIDF(0.00025, 0.0, 0.00001, 0.05);
         rightLauncherPIDF = new VelocityPIDF(0.00025, 0.0, 0.00001, 0.05);
+
+        //Setting indexes for shoot range:
+        shootDist[0] = 13.5;
+        shootDist[1] = 15;
+
+        currLaunchVel = shootDist[0];
 
 
         // Initialize settings for launcher and kebob motors
@@ -663,6 +688,7 @@ public class RobotHardware  {
     public double getOdometryHeading() {
         return headingOdometryCounter;
     }
+
 
 
 
@@ -1130,19 +1156,65 @@ public class RobotHardware  {
     }
     public void shootOn(double targetRPM) { //Changed this to use RPM instead of pure power to (hopefully) allow better shooting.
 
+        leftLauncherPIDF.reset();
+        rightLauncherPIDF.reset();
+
         updateLaunchPos();
 
         double leftPower = leftLauncherPIDF.updateVelocity(targetRPM, leftLauncherRPM, launcherDt);
 
         double rightPower = rightLauncherPIDF.updateVelocity(targetRPM, rightLauncherRPM, launcherDt);
 
-        leftLauncherMotor.setPower(clip(leftPower, 0.0, 1.0));
-        rightLauncherMotor.setPower(clip(rightPower, 0.0, 1.0));
+        leftLauncherMotor.setPower(clip(leftPower, -1.0, 1.0));
+        rightLauncherMotor.setPower(clip(rightPower, -1.0, 1.0));
     }
+
     public void shootOff() {  // turns off the shooter
         leftLauncherMotor.setPower(0);
         rightLauncherMotor.setPower(0);
     }
+
+    public void nextShootIndex() {
+        i++;
+        if (i >= shootDist.length) {
+            currLaunchVel = shootDist[0];
+            i = 0;
+        }
+        else
+        {
+            currLaunchVel = shootDist[i];
+        }
+    }
+    public void prevShootIndex() {
+        if (i < 0) {
+            currLaunchVel = shootDist[shootDist.length - 1];
+        }
+        else
+        {
+            currLaunchVel = shootDist[i];
+            i--;
+        }
+
+    }
+
+    public void switchToIndex (int ind)
+    {
+        currLaunchVel = shootDist[ind];
+        i = ind;
+    }
+
+    public double getShootDist()
+    {
+        return currLaunchVel;
+    }
+    public  int getIndex()
+    {
+        return i;
+    }
+
+
+
+
     /*------ Kebob Methods ------ */
 
     public void sizzleOff() {
@@ -1152,6 +1224,7 @@ public class RobotHardware  {
     public void steakOff() {
       steakMotor.setPower(0);
    }
+
     public void forwardSizzleSteak(double power) {
         sizzleMotor.setPower(power);
         steakMotor.setPower(power);
@@ -1176,13 +1249,33 @@ public class RobotHardware  {
 
         }
 
-    /* ------- Odometry Calculation ----- */
-    public void strafeTest()
+    /*---- LED Methods ---*/
 
+    public void setShoot1LED (boolean isOn)
     {
-        forward(100, MOTOR_SPEED_FACTOR_AUTONOMOUS);
-        strafe(100, MOTOR_SPEED_FACTOR_AUTONOMOUS);
+        if (isOn)
+            shoot1LED.on();
+        else
+            shoot1LED.off();
+
     }
+    public void setShoot2LED (boolean isOn)
+    {
+        if (isOn)
+            shoot2LED.on();
+        else
+            shoot2LED.off();
+
+    }
+    public void setShoot3LED (boolean isOn)
+    {
+        if (isOn)
+            shoot3LED.on();
+        else
+            shoot3LED.off();
+
+    }
+
 
     /* ----- Vision processing methods ----- */
 
@@ -1736,7 +1829,11 @@ public class RobotHardware  {
             this.kF = f;
 
         }
-
+        public void reset() {
+            intergal = 0.0;
+            lastError = 0.0;
+            lastVelocity = 0.0;
+        }
         public double updateVelocity(double tarVel, double curVel, double dt)
         {
             double errorVel = tarVel - curVel;

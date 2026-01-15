@@ -61,9 +61,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Autonomous(name="From Wall Auto - Blue", group="Auto")
+@Autonomous(name="Blue Wall Auto Extra", group="Auto")
 //@Disabled
-public class FromWallAutoBlue extends LinearOpMode {
+public class BlueWallAutobutWIRE extends LinearOpMode {
+
 
 
 
@@ -74,8 +75,12 @@ public class FromWallAutoBlue extends LinearOpMode {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
 
+    private final double NORMAL = RobotHardware.MOTOR_SPEED_FACTOR_NORMAL;
+    private final double FAST = RobotHardware.MOTOR_SPEED_FACTOR_DAVIS;
 
-    boolean isFar = false;
+
+    int sleepT = 1000;
+    int wallDir = 1; //blue is negative; red is postive
     //@Override
     public void runOpMode() {
 
@@ -86,6 +91,7 @@ public class FromWallAutoBlue extends LinearOpMode {
         telemetry.update();
 
 
+
         // Wait for the game to start (driver presses START)
         waitForStart();
 
@@ -93,80 +99,55 @@ public class FromWallAutoBlue extends LinearOpMode {
         runtime.reset();
 
 
-        //move off wall barely
-        robot.reverseLauncher(.5);
-        robot.forward(-1350, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
 
-        sleep(600);
-        //call shoot two -- 1st shot from goal
+        while (opModeIsActive())
+        {
+            //goes to farthest launch dist
+            robot.switchToIndex(1);
 
-        shootTwo();
+            if (opModeIsActive())
+                robot.forward(100, NORMAL);
+            //turns towards red goal
+            if (opModeIsActive())
+                robot.turnCustom(wallDir*(Math.PI/6.5), NORMAL);
 
-        //turns towards first motif
-        robot.turnCustom(Math.PI / 4.5, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //runs sizzle steak
-        robot.forwardSizzleSteak(.8);
-        //runs into motif
-        robot.strafe(200, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        robot.forward(1000, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
+            //lets artifacts rest than shoots three
+            sleep(sleepT);
+            if (opModeIsActive())
+                shootThree();
 
-        //sleep -_- <--- Willy P.
-        sleep(800);
-        //turns off sizzle steak.
-        robot.sizzleSteakOff();
-        //backs off
-        robot.reverseLauncher(.5);
-        robot.forward(-850, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //turns toward ramp
-        robot.turnCustom(-Math.PI / 4.5, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //call shoot two -- 2nd shot from 1st Launch Line
-        sleep(800);
-        shootTwo();
-        //
-        robot.turnCustom(Math.PI / 4.5, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        robot.strafe(700, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        robot.forwardSizzleSteak(.6);
-
-        robot.forward(1000, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL - .1);
-
-        robot.sizzleSteakOff();
-        //backs off of the Line 2
-        robot.reverseLauncher(.5);
-        robot.forward(-1400, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        //strafes back toward launch line.
-        robot.strafe(-530, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-        robot.turnCustom(-Math.PI / 4.5, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-        //call shoot two -- 3rd shot from Front Launch Line
-        sleep(800);
-        shootTwo();
-
-
-        //Performs leave
-        robot.strafe(600, RobotHardware.MOTOR_SPEED_FACTOR_NORMAL);
-
-
+        }
 
 
 
         // Make sure robot stops (teleop initialization default) before OpMode dies
         robot.stop();
+
     }
 
-    public void shootTwo() {
+
+
+
+
+
+
+
+
+
+
+
+
+    public void shootThree() {
         ElapsedTime shootTimer = new ElapsedTime();
         shootTimer.reset();
 
         while (opModeIsActive() && shootTimer.milliseconds() < 1550) {
-            robot.shootOn(12.5);
+            robot.shootOn(robot.currLaunchVel);
             idle();
         }
 
-        robot.forwardSizzleSteak(0.8);
-        sleep(2000);
+        robot.forwardSizzleSteak(0.9);
+        sleep(3000);
         robot.sizzleSteakOff();
 
 
@@ -175,11 +156,3 @@ public class FromWallAutoBlue extends LinearOpMode {
 
     }
 }
-
-
-
-
-
-
-
-
